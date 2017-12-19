@@ -1,0 +1,666 @@
+
+@media screen and (max-width: 800px) {
+  .form { width:80%!important; }
+  .field-set .input-field { float:left!important; }
+  .field-set .form-element label { display:block; float:none; }
+  .field-set .form-element .input-field { clear:both }
+  .group-fields {  float:left; width:auto; margin-left:0px; }
+  .field-set .form-element div {  }
+
+}
+@media screen and (max-width: 400px) { 
+  .form { width:80%!important; }
+  .field-set .input-field { float:left!important; }
+  .field-set .form-element label { display:block; float:none; }
+  /*	.form-element div { clear:both!important }*/
+  .input-field { width:auto; float:left; height:38px; background:url(images/text-field_right.png) top right no-repeat; padding-right:14px; }
+  .body .wrapper { width:100%!important; }
+  .body { padding:0px 0px !important; }
+  .body .wrapper .content .box .form { padding-top:0px!important; }
+  .form-element div { clear:both; margin-bottom:5px;}	
+  .body .wrapper .content .box { text-align:left!important }
+  .form-element .group-fields { float:left!important; clear:none!important; }
+  .form-element .group-fields .input-field { float:left!important; clear:none!important }
+  .account { min-width:150px!important; }
+  .employer { min-width:120px!important; }
+}
+
+
+
+.text-area { width:175px; height:187px; float:left; display:block; overflow:hidden; background:url(images/text_area-left.png) top left no-repeat; padding:0px; padding-left:23px; min-width:200px; }
+.text-area label { width:100%; height:187px; padding:0px; border:0px; font:14px Arial, Helvetica, sans-serif; color:#8a8a8a;  background:url(images/text_area-right.png) top right no-repeat; float:left; display:block;  }
+.text-area textarea { width:175px; height:180px; overflow:auto; background:none; border:0px; float:left; display:block; padding:10px 0px;  outline:none; }
+html.js .resizable-textarea textarea, .resizable-textarea {
+  width: 175px;
+}
+/* Form Misc */
+.account { min-width:240px; }
+.form-section { width:100%; float:left; clear:both; }
+.employer { min-width:280px; }
+.full { width:100%!important; }
+/*.file { float:left; width:113px; height:29px; background:url(images/file.png) top left no-repeat; }
+.file input { border:0px !important; background:url(images/browse.png) top left no-repeat; width:74px; min-width:74px; height:25px; }*/
+.normal { min-width:215px; }
+.link { float:left; }
+.link p { clear:both; float:left; width:100%; }
+
+/* File Upload */
+.upload {
+  position:relative;
+  width:380px;
+  list-style:none;
+  float:left;
+}
+.upload ul li { list-style:none; }
+.realupload {
+  position:absolute;
+  top:0;
+  left:30px;
+  /* background:url(images/browse.png) top left no-repeat;
+   start of transparency styles 
+  opacity:0;
+  -moz-opacity:0;
+  filter:alpha(opacity:0);*/
+  /* end of transparency styles */
+
+  z-index:2; /* bring the real upload interactivity up front */
+  width:300px;
+}
+.fakeupload {
+  background-image:none;
+  background-color:transparent;
+}
+.fakeupload input {
+  width:0px;
+}
+
+
+/************************* New Form Elements  ************************************/
+
+/************* Consistent to all form elements ***************/
+.form-tag { 
+  background: #f5f7f9; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjdmOSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkZWU0ZWEiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #f5f7f9 0%, #dee4ea 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f7f9), color-stop(100%,#dee4ea)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #f5f7f9 0%,#dee4ea 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f7f9', endColorstr='#dee4ea',GradientType=0 ); /* IE6-8 */
+  -webkit-border-radius: 30px;
+  border-radius: 30px; 
+  border:solid 1px #aab7b8!important;
+  color:#8a8a8a!important;
+  font-size:14px!important;
+}
+
+/* New Input Field */
+.input-field {  
+  width:auto;
+  float:left;
+  height:32px;
+  /*  padding-right:15px;*/
+  /*  padding-left:15px; */
+  line-height:32px;
+}
+.text-area { float:left; max-width:800px; }
+
+/************************* New field-set   ************************************/
+/*.field-set { */
+.webform-component-fieldset {
+  width:100%; height:auto; clear:both;
+  border:solid 1px #7a7a7a!important;
+  -webkit-border-radius: 25px;
+  border-radius: 25px;
+  position:relative;
+  padding-top:30px;
+  padding-bottom:30px;
+  padding-right:20px;
+  margin-bottom: 34px;
+}
+
+.form-element div .sel-drops {
+  margin-right: 10px;
+}
+
+.webform-client-form label {
+  width: 110px;
+}
+
+legend {
+  padding: 5px 10px; 
+  position: absolute; 
+  left: 20px; 
+  top: -15px; 
+  background: #72ade3; 
+  font: 16px/25px Arial,Helvetica,sans-serif;
+  color: #FFFFFF;
+  width: auto; 
+  -webkit-border-radius: 30px;
+  border-radius: 30px;
+  border: solid 1px #aab7b8!important;
+}
+
+/*.input-field {  */
+.form-text {
+  width:175px; float:left; height:32px; padding-right:15px; padding-left:15px; line-height:32px;
+  /*}
+  .form-tag { */
+  background: #f5f7f9; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjdmOSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkZWU0ZWEiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #f5f7f9 0%, #dee4ea 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f7f9), color-stop(100%,#dee4ea)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #f5f7f9 0%,#dee4ea 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f7f9', endColorstr='#dee4ea',GradientType=0 ); /* IE6-8 */
+  -webkit-border-radius: 30px;
+  border-radius: 30px;
+  border:solid 1px #aab7b8!important;
+  color:#8a8a8a!important;
+  font-size:14px!important;
+}
+
+.form-item label {font-weight: normal;}
+
+.form-item {
+  margin-top: 0px !important;
+}
+
+.webform-component{
+  float: left;
+  width: 100%;
+}
+
+.form-item .description {
+  float: left;
+  margin-left: 191px;
+  width: 100%;
+}
+
+.webform-component-textarea {
+  width: auto;
+}
+
+fieldset .webform-component {
+  margin-bottom: 15px;
+}
+
+.field-prefix{
+  float: left;
+  padding-right: 5px;
+  padding-top: 10px;
+}
+
+label.option{
+  width: 125px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.form-element .form-checkboxes, .form-element .form-radios{
+  margin-top: 10px;
+}
+
+/************** Skin 1 *********************/
+.dd {
+  /*display:inline-block !important;*/
+  text-align:left;
+  background-color:#fff;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:12px;
+  float:left;
+}
+.dd .ddTitle {
+  background:#f2f2f2;
+  border:1px solid #c3c3c3;
+  padding:3px;
+  text-indent:0;
+  cursor:default;
+  overflow:hidden;
+  height:16px;
+
+}
+.dd .ddTitle span.arrow {
+  background:url(dd_arrow.gif) no-repeat 0 0; float:right; display:inline-block;width:16px; height:16px; cursor:pointer;
+}
+
+.dd .ddTitle span.ddTitleText {text-indent:1px; overflow:hidden; line-height:16px;}
+.dd .ddTitle span.ddTitleText img{text-align:left; padding:0 2px 0 0}
+.dd .ddTitle img.selected {
+  padding:0 3px 0 0;
+  vertical-align:top;
+}
+.dd .ddChild {
+  position:absolute;
+  border:1px solid #c3c3c3;
+  border-top:none;
+  display:none;
+  margin:0;
+  width:auto;
+  overflow:auto;
+  overflow-x:hidden !important;
+  background-color:#ffffff;
+}
+.dd .ddChild .opta a, .dd .ddChild .opta a:visited {padding-left:10px}
+.dd .ddChild a {
+  display:block;
+  padding:2px 0 2px 3px;
+  text-decoration:none;
+  color:#000;
+  overflow:hidden;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.dd .ddChild a:hover {
+  background-color:#66CCFF;
+}
+.dd .ddChild a img {
+  border:0;
+  padding:0 2px 0 0;
+  vertical-align:middle;
+}
+.dd .ddChild a.selected {
+  background-color:#66CCFF;
+
+}
+.hidden {display:none;}
+
+/************** Skin 2 *********************/
+.dd2 {
+  /*display:inline-block !important;*/
+  text-align:left;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:12px;
+  float:left;
+  background: #f5f7f9; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjdmOSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkZWU0ZWEiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #f5f7f9 0%, #dee4ea 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f7f9), color-stop(100%,#dee4ea)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #f5f7f9 0%,#dee4ea 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f7f9', endColorstr='#dee4ea',GradientType=0 ); /* IE6-8 */
+  -webkit-border-radius: 30px;
+  border-radius: 30px;
+  border:solid 1px #aab7b8!important;
+  color:#8a8a8a!important;
+  font-size:14px!important;
+  filter: none;
+  width: 150px !important;
+}
+
+.dd2 .ddTitle {
+  /*background:transparent url(images/msDropDown.gif) no-repeat;*/
+  padding:0 3px;
+  text-indent:10px;
+  cursor:default;
+  overflow:hidden;
+  height:35px;
+  width:100%!important;
+}
+.dd2 .ddTitle span.arrow {
+  background:transparent url(images/arrow.png) no-repeat 0 0; float:right; display:inline-block; width:48px; height:35px; cursor:pointer; top:0px; position:relative; outline:none }
+
+.dd2 .ddTitle span.ddTitleText {text-indent:15px; overflow:hidden; line-height:33px; color:#8a8a8a!important;
+                                font-size:14px!important;
+                                font-family:Arial, Helvetica, sans-serif;}
+.dd2 .ddTitle span.ddTitleText img{text-align:left; padding:0 2px 0 0;}
+.dd2 .ddTitle img.selected {
+  padding:0 2px 0 0;
+  vertical-align:top;
+}
+.dd2 .ddChild {
+  position:absolute;
+  border:1px solid #c3c3c3;
+  border-top:none;
+  display:none;
+  margin:0;
+  /*left:121px;*/
+  width:auto;
+  overflow:auto;
+  overflow-x:hidden !important;
+  background-color:#ffffff;
+  color:gray;
+  font-size:14px!important;
+  font-family:Arial, Helvetica, sans-serif;
+  /*	margin-top:35px;*/
+  background: #f5f7f9; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y1ZjdmOSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNkZWU0ZWEiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #f5f7f9 0%, #dee4ea 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f5f7f9), color-stop(100%,#dee4ea)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #f5f7f9 0%,#dee4ea 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #f5f7f9 0%,#dee4ea 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f7f9', endColorstr='#dee4ea',GradientType=0 ); /* IE6-8 */
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+  width: 150px !important;
+}
+.dd2 .ddChild .opta a, .dd2 .ddChild .opta a:visited {padding-left:10px}
+.dd2 .ddChild a {
+  display:block;
+  padding:3px 0 3px 3px;
+  text-decoration:none;
+  color:gray;
+  overflow:hidden;
+  white-space:nowrap;
+  cursor:pointer;
+  height:28px;
+  line-height:28px;
+  text-indent:10px;
+}
+.dd2 .ddChild a:hover {
+  background-color:#71abdf;
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+  color:white;
+}
+.dd2 .ddChild a img {
+  border:0;
+  padding:0 2px 0 0;
+  vertical-align:middle;
+}
+.dd2 .ddChild a.selected {
+  background-color:#71abdf;
+  -webkit-border-radius: 15px;
+  border-radius: 15px;
+  color:white;
+}
+
+.webform-component-fieldset fieldset{
+  border: none !important;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.webform-component-fieldset fieldset legend{
+  display: none !important;
+}
+
+.form-file{
+  float: left;
+}
+.webform-component-fieldset fieldset label {
+  /*  width: 150px;*/
+  width: 130px;
+}
+
+
+/* For Large Button like submit and save etc  */
+.form-submit {
+  background: #4089cb; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzQwODljYiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM3Y2JhZjMiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #4089cb 0%, #7cbaf3 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4089cb), color-stop(100%,#7cbaf3)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #4089cb 0%,#7cbaf3 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #4089cb 0%,#7cbaf3 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #4089cb 0%,#7cbaf3 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #4089cb 0%,#7cbaf3 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4089cb', endColorstr='#7cbaf3',GradientType=0 ); /* IE6-8 */
+  -webkit-border-radius:10px;
+  border-radius: 10px;
+  border:solid 1px #386084!important;
+  color:#144c7f; text-shadow:0px 1px #5cbef7; font-weight:bold; line-height:35px;  text-align:center;
+  height:36px;
+  padding:0px 25px;
+  cursor:pointer;
+}
+.button:hover {
+  background: #7cbaf3; /* Old browsers */
+  /* IE9 SVG, needs conditional override of 'filter' to 'none' */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzdjYmFmMyIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM0MDg5Y2IiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: -moz-linear-gradient(top,  #7cbaf3 0%, #4089cb 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#7cbaf3), color-stop(100%,#4089cb)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  #7cbaf3 0%,#4089cb 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  #7cbaf3 0%,#4089cb 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  #7cbaf3 0%,#4089cb 100%); /* IE10+ */
+  background: linear-gradient(to bottom,  #7cbaf3 0%,#4089cb 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#7cbaf3', endColorstr='#4089cb',GradientType=0 ); /* IE6-8 */
+}
+/* For small button like add new number and add New etc  */
+.form-submit { height:25px!important; line-height:24px!important; padding:0px 10px; }
+/************************* New field-set   ************************************/
+
+.resizable-textarea .grippie{
+  display: none !important;
+}
+
+.input-field span{
+  display: none !important;
+}
+
+/* ---------------- The Developers 2 CSS Styles start from here --------------*/
+
+html.js .resizable-textarea textarea, .resizable-textarea {
+  width: 225px;
+}
+
+.body .wrapper .content .box .node {
+  text-align: justify;
+}
+
+fieldset {
+  padding: 0;
+  margin: 0;  
+}
+
+.all-submit {
+  text-align: center;
+}
+
+.webform-component-fieldset {
+  padding-right: 0;
+  padding-left: 15px;  
+  width: auto;
+}
+
+.webform-client-form .webform-component-fieldset .form-submit {
+  float: right;
+  margin-right: 25px;
+}
+
+.webform-client-form .webform-component-fieldset .resizable-textarea textarea {
+  width: 225px;
+}
+
+.dd2 {
+  width: auto !important;
+  margin-right: 5px;
+}
+
+.dd2 .ddTitle {
+  padding: 0;
+  width: auto !important;
+}
+
+.dd2 .ddTitle span.ddTitleText {
+  margin-right: 5px;
+}
+
+.webform-component-fieldset .dd2 .ddTitle span.ddTitleText {
+  margin-left: 5px;
+}
+
+/* ---------------- Contact Us form node/14 --------------------------------- */
+
+#webform-client-form-14 .form-text {
+  width: 195px;
+}
+
+#webform-client-form-14 .form-item .description {
+  margin: 0;
+}
+
+#webform-client-form-14 .form-item .description p {
+  padding: 0;
+  margin-left: 130px;
+}
+
+/* ---------------- Financial form node/3 ----------------------------------- */
+
+.body .wrapper .content .box #node-3 {
+  text-align: center;
+}
+
+#webform-client-form-3 .form-text {
+  width: 225px;
+}
+
+#webform-client-form-3 #webform-component-bank-account label {
+  width: 100px;
+}
+
+#webform-client-form-3 #webform-component-credit---debit-cards label {
+  width: 120px;
+}
+
+#webform-client-form-3 #webform-component-credit-score label {
+  width: 70px;
+}
+
+#webform-client-form-3 #webform-component-loans label {
+  width: 90px;
+}
+
+/* ---------------- Employment Info form node/4 ----------------------------- */
+
+.body .wrapper .content .box #node-4 {
+  text-align: center;
+}
+
+#webform-client-form-4 .webform-client-form label {
+  width: 110px;
+}
+
+#webform-client-form-4 #edit-submitted-employer-contact-information-wrapper label {
+  width: 100%;
+}
+
+#webform-client-form-4 #edit-submitted-annual-salary-and-wages-wrapper label {
+  width: 100%;
+}
+
+#webform-client-form-4 #edit-cv-wrapper label {
+  padding-top: 0;
+  width: 50px;
+}
+
+#webform-client-form-4 .form-text {
+  width: 240px;
+}
+
+#webform-client-form-4 .form-item .description {
+  margin: 0;
+}
+
+#webform-client-form-4 .form-item .description p {
+  padding: 0;
+  margin-left: 50px;
+}
+
+#webform-client-form-4 .webform-component-fieldset fieldset label {
+  width: 70px;
+}
+
+/* ---------------- Medical History form node/5 ----------------------------- */
+
+#webform-client-form-5 #webform-component-smoker---no-smoker label {
+  width: 100%;
+  padding: 0;  
+}
+
+#webform-client-form-5 #webform-component-smoker---no-smoker .form-radios {
+  margin: 0;
+}
+
+#webform-client-form-5 #webform-component-smoker---no-smoker .form-radios .form-item {
+  width: 100%;
+  margin: 0;
+}
+
+#webform-client-form-5 #webform-component-surgeries label {
+  width: 95px;
+}
+
+#webform-client-form-5 #webform-component-implants label {
+  width: 95px;
+}
+
+/* ---------------- Government ID form node/8 ------------------------------- */
+
+#webform-client-form-8 .form-text {
+  width: 240px;  
+}
+
+#webform-client-form-8 .form-item .description {
+  margin: 0;
+}
+
+#webform-client-form-8 .form-item .description p {
+  padding: 0;
+  margin-left: 110px;
+}
+
+/* ---------------- Insurance and Car Registration form node/9 -------------- */
+
+.body .wrapper .content .box #node-9 {
+  text-align: center;
+}
+
+#webform-client-form-9 .form-text {
+  width: 240px;  
+}
+
+/* ---------------- Favorites form node/10 ---------------------------------- */
+
+.body .wrapper .content .box #node-10 {
+  text-align: center;
+}
+
+#webform-client-form-10 .form-text {
+  width: 240px;  
+}
+
+/* ---------------- Products & Warranties form node/11 ---------------------- */
+
+#webform-client-form-11 .form-text {
+  width: 240px;  
+}
+
+#webform-client-form-11 .form-item .description {
+  margin: 0;
+}
+
+#webform-client-form-11 .form-item .description p {
+  padding: 0;
+  margin-left: 110px;
+}
+
+/* ---------------- Home Registry form node/12 ------------------------------ */
+
+.body .wrapper .content .box #node-12 {
+  text-align: center;
+}
+
+#webform-client-form-12 .form-item .description {
+  margin: 0;
+}
+
+#webform-client-form-12 .form-item .description p {
+  padding: 0;
+  margin-left: 110px;
+}

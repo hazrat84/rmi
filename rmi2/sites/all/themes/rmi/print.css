@@ -1,0 +1,6 @@
+/*Print CSS Document */
+.body { padding:3% 0px 30px 0px; background:url(images/body.jpg) top left repeat-x; float:left; width:100%; background-color: #EEEEEE; }
+.body .logo { width:149px; height:81px; float:left; margin-bottom: 2%; margin-left: 5%; }
+.site_name {  float: left; font-size: 22px; font-weight: bold; padding-left: 2%; padding-top: 3%; }
+.body .wrapper { width:90%; height:auto; margin:0px auto; }
+.body .wrapper_print .content { width:100%; height:auto; float:left!important; }

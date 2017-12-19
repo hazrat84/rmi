@@ -1,0 +1,70 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function popdata_install() {
+  // Create tables.
+  drupal_install_schema('popdata');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function popdata_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('popdata');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function popdata_schema() {
+  $schema['popdata'] = array(
+    'description' => 'Stores temporary data for data population',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique ID.',
+      ),
+        'datagroup_id' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "data group unique id",
+      ),
+        'sid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "data group submission id",
+      ),
+        'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "user id",
+      ),
+      'mail' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'user email',
+      ),
+      'created' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'submission time',
+      ),
+        
+    ),
+    'primary key' => array('id'),
+    
+  );
+
+  return $schema;
+}

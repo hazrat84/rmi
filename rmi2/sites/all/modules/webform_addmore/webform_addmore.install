@@ -1,0 +1,76 @@
+<?php
+/**
+ * Implementation of hook_install().
+ */
+function webform_addmore_install() {
+  // Create tables.
+  drupal_install_schema('webform_addmore');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function webform_addmore_uninstall() {
+  // Remove tables.
+  drupal_uninstall_schema('webform_addmore');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function webform_addmore_schema() {
+  $schema['webform_addmore'] = array(
+    'description' => 'Webform add more settings.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique ID.',
+      ),
+        'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "webform node id",
+      ),
+        'fieldset_cid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "fieldset cid",
+      ),
+      'fieldset_form_key' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'fieldset form key',
+      ),
+        'fieldset_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'fieldset name',
+      ),
+         'sub_fieldset_cid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => "sub fieldset cid",
+      ),
+      'sub_fieldset_form_key' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'sub fieldset form key',
+      ),
+    ),
+    'primary key' => array('id'),
+    
+  );
+
+  return $schema;
+}

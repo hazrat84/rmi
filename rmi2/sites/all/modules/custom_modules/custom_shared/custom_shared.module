@@ -1,0 +1,1298 @@
+<?php
+
+/**
+ * @file
+ * Enables the data group sharing for webform based forms.
+ * custom_shared.module
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function custom_shared_menu() {
+  $items = array();
+  // To list all the data groups
+  $items['user/data-groups'] = array(
+      'title' => 'My Data Groups',
+      'description' => 'View the list of available data groups.',
+      'page callback' => 'custom_shared_datagroups',
+      'type' => MENU_NORMAL_ITEM,
+      'access callback' => 'custom_shared_check_access',
+  );
+  // To search the users with whom data group will be shared
+  $items['share/data-groups'] = array(
+      'title' => t('Search User'),
+      'page callback' => 'custom_shared_for_data_group',
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_CALLBACK,
+  );
+  $items['share/data-groups/%user/%node/instances'] = array(
+      'title' => t('Instance Information'),
+      'page callback' => 'custom_shared_datagroups_instances',
+      'page arguments' => array(2, 3),
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_CALLBACK,
+  );
+  $items['share/data-groups/%user/%node/fields'] = array(
+      'title' => t('Field Information'),
+      'page callback' => 'custom_shared_datagroups_fields',
+      'page arguments' => array(2, 3),
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['share/data-groups/%user/%node/complete'] = array(
+      'title' => t('Field Information'),
+      'page callback' => 'custom_shared_datagroups_complete',
+      'page arguments' => array(2, 3),
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['get/data-groups/list'] = array(
+      'title' => t('Sharing Data Groups'),
+      'page callback' => 'custom_shared_for_sharing',
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_CALLBACK,
+  );
+  $items['data/instances/%/%'] = array(
+      'title' => 'Instances',
+      'page callback' => 'custom_shared_get_instances',
+      'page arguments' => array(2),
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_CALLBACK,
+  );
+  $items['user/dashboard'] = array(
+      'title' => 'Dashboard',
+      'description' => 'The dashboard accessed when user logins',
+      'page callback' => 'custom_shared_dashboard',
+      'type' => MENU_NORMAL_ITEM,
+      'access callback' => 'custom_shared_check_access',
+  );
+  $items['user-shared/with-me/%user'] = array(
+      'title' => 'Shared With me',
+      'description' => 'The dashboard accessed when user logins',
+      'page callback' => 'custom_shared_shared_with_me',
+      'page arguments' => array(2),
+      'type' => MENU_NORMAL_ITEM,
+      'access callback' => 'custom_shared_check_access',
+  );
+  $items['unshare/data-group/%user/%node'] = array(
+      'title' => t('Field Information'),
+      'page callback' => 'custom_shared_unshare_datagroup',
+      'page arguments' => array(2, 3),
+      'access callback' => 'custom_shared_check_access',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_init()
+ */
+function custom_shared_init() {
+  global $user;
+  if (!$user->uid) {
+    if (arg(0) === 'user' && !arg(1)) {
+      drupal_goto('user/login', 'destination=content/welcome-register-my-info');
+    }
+  }
+  drupal_add_js(drupal_get_path('module', 'custom_shared') . '/shared.js');
+}
+
+/**
+ * Implements hook_theme().
+ * @return $themes
+ */
+function custom_shared_theme() {
+  $themes = array(
+      'custom_shared_data_listing_form' => array(
+          'arguments' => array('form'),
+          'function' => 'theme_custom_shared_data_listing_form',
+      ),
+      'custom_shared_show_instances_form' => array(
+          'arguments' => array('form'),
+          'function' => 'theme_custom_shared_show_instances_form',
+      ),
+      'custom_shared_datagroups_fields_form' => array(
+          'arguments' => array('form'),
+          'function' => 'theme_custom_shared_datagroups_fields_form',
+      ),
+  );
+  return $themes;
+}
+
+/**
+ * Custom callback for sharing the data groups
+ * @return string
+ */
+function custom_shared_for_data_group() {
+  global $user;
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+  if (is_numeric(arg(2))) {
+    $arg = arg(2);
+  }
+
+  $output = drupal_get_form('custom_shared_search_the_user_form');
+
+
+  if (isset($_SESSION['searched_user'])) {
+    // When the searched user this blocked executes
+    $uid = intval($_SESSION['searched_user']);
+    unset($_SESSION['searched_user']);
+
+    $output.= '<div class="user-share-heading"><h3>Found User:</h3></div>';
+    $output.= '<div class="clear"></div>';
+    $output.= '<div class="searched-users">';
+
+    $contact_user = user_load($uid);
+    profile_load_profile($contact_user);
+
+    $name = $contact_user->profile_first_name . " " . $contact_user->profile_last_name;
+    $title = '<img alt="icon" border="0" src="' . $image_path . '/images/my_account.png" width="100" />';
+    $link_to = 'share/data-groups/' . $uid . '/' . $arg . '/instances';
+
+    $url = l($title, $link_to, array('html' => TRUE, 'attributes' => array('class' => 'shortcut-button')));
+
+    $output.= '<div class="users_div">';
+
+    $output.= '<div class="users_item">';
+
+    $output.= '<div class="users_wrapper">';
+    $output.= '<div class="users_img">' . $url . '</div>';
+    $output.= '</div>';
+
+    $output.= '<div class="users_title">';
+    $output.= '<p>' . l($name, $link_to) . '</p>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+
+    $output.= '<div class="users_shadow">';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    $output.= '</div>';
+  } else {
+    // Initially when user search page is loaded.
+    $users = db_query("SELECT DISTINCT(s.uid) FROM {data_group_sharing} s INNER JOIN users u on u.uid = s.`contact_uid` WHERE s.contact_uid = %d", $user->uid);
+    if (db_affected_rows()) {
+      $output.= '<div class="user-share-heading"><h3>Select a contact to share with.</h3></div>';
+      $output.= '<div class="clear"></div>';
+      $output.= '<div class="searched-users">';
+      while ($row = db_fetch_array($users)) {
+        $uid = $row['uid'];
+        $contact_user = user_load($uid);
+        profile_load_profile($contact_user);
+
+        $name = $contact_user->profile_first_name . " " . $contact_user->profile_last_name;
+        $title = '<img alt="icon" border="0" src="' . $image_path . '/images/my_account.png" width="100" />';
+        $link_to = 'share/data-groups/' . $uid . '/' . $arg . '/instances';
+
+        $url = l($title, $link_to, array('html' => TRUE, 'attributes' => array('class' => 'shortcut-button')));
+        $output.= '<div class="users_div">';
+
+        $output.= '<div class="users_item">';
+
+        $output.= '<div class="users_wrapper">';
+        $output.= '<div class="users_img">' . $url . '</div>';
+        $output.= '</div>';
+
+        $output.= '<div class="users_title">';
+        $output.= '<p>' . l($name, $link_to) . '</p>';
+        $output.= '</div>';
+
+        $output.= '</div>';
+
+        $output.= '<div class="users_shadow">';
+        $output.= '</div>';
+
+        $output.= '</div>';
+      }
+      $output.= '</div>';
+    } else {
+      $output.= '';
+    }
+  }
+  return $output;
+}
+
+/**
+ * Form to search the user
+ * @return string
+ */
+function custom_shared_search_the_user_form() {
+  $form = array();
+  if (is_numeric(arg(2))) {
+    $arg = arg(2);
+  }
+  $form['email'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Search User'),
+      '#maxlength' => 50,
+  );
+  $form['group_id'] = array(
+      '#type' => 'hidden',
+      '#value' => $arg,
+  );
+  $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Search User'
+  );
+  return $form;
+}
+
+/**
+ * Form submit for Searching the user Form
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_search_the_user_form_submit(&$form, $form_state) {
+  $values = $form_state['values'];
+  $email = $values['email'];
+  $group_id = $values['group_id'];
+  $uid = db_result(db_query("SELECT uid FROM {users} WHERE mail = '%s'", $email));
+  $_SESSION['searched_user'] = $uid;
+  $_SESSION['group_id'] = $group_id;
+}
+
+function custom_shared_search_the_user_form_validate(&$form, $form_state) {
+  $values = $form_state['values'];
+  $email = $values['email'];
+  if (empty($values['email'])) {
+    form_set_error("email", 'You cannot leave the field blank');
+  }
+  if (!valid_email_address($email)) {
+    form_set_error("email", 'Please enter valid Email Address to search User');
+  }
+  if (valid_email_address($email)) {
+    $u['mail'] = $email;
+    $user = user_load($u);
+    if (!$user) {
+      form_set_error("email", 'User does not exists');
+    }
+  }
+}
+
+/**
+ * Access callback to check facility owner can access the pages or not
+ */
+function custom_shared_check_access() {
+  global $user;
+  if ($user->uid === 1) {
+    return TRUE;
+  }
+  $bool = FALSE;
+  if (in_array('authenticated user', $user->roles)) {
+    $bool = TRUE;
+  } else {
+    $bool = FALSE;
+  }
+  return $bool;
+}
+
+/**
+ * Custom Callback to show all the data group
+ * @return string
+ */
+function custom_shared_for_sharing() {
+  $output = '';
+  // Get User id from query string
+  $u = $_GET['id'];
+
+  // load user
+  $user = user_load($u);
+  profile_load_profile($user);
+  drupal_set_title('Sharing Data Group with ' . $user->profile_first_name . " " . $user->profile_last_name);
+
+  $output.= drupal_get_form('custom_shared_data_listing_form', $u);
+
+  return $output;
+}
+
+/**
+ * Custom function which show all the Data Group which are to be shared with the searched user.
+ * 
+ * @global $user
+ * @param $form
+ * @param $uid
+ * @return $form
+ */
+function custom_shared_data_listing_form($form, $uid) {
+  global $user;
+  $accounts = array();
+  $form = array();
+  $nodes = db_query('SELECT nid,title FROM {node} WHERE type="%s"', 'webform');
+  $selected = array();
+  $set = 0;
+  if (db_affected_rows()) {
+    while ($row = db_fetch_array($nodes)) {
+      $set = db_result(db_query("SELECT 1 FROM `data_group_sharing` WHERE uid = %d AND contact_uid = %d AND nid = %d AND all_instances = %d", $uid, $user->uid, $row['nid'], 1));
+      if ($set) {
+        $selected[] = $row['nid'];
+      }
+      $link_to_lightbox = l($row['title'], 'data/instances/' . $row['nid'] . '/' . $uid, array('attributes' => array('alt' => $row['title'], 'rel' => 'shadowbox;width=600;height=400;')));
+      $accounts[$row['nid']] = '';
+      $form['group'][$row['nid']] = array(
+          '#value' => $link_to_lightbox,
+          '#type' => 'item',
+      );
+    }
+    $form['accounts'] = array(
+        '#type' => 'checkboxes',
+        '#default_value' => $selected,
+        '#options' => $accounts,
+    );
+  }
+  $form['uid'] = array(
+      '#type' => 'hidden',
+      '#value' => $uid,
+  );
+  $form['share_groups'] = array(
+      '#type' => 'submit',
+      '#value' => t('Share'),
+  );
+  return $form;
+}
+
+/**
+ * Submit function for Data Group form
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_data_listing_form_submit($form, &$form_state) {
+  global $user;
+  $values = $form_state['values'];
+  $uid = $values['uid'];
+  $contact_uid = $user->uid;
+  $accounts = array_filter($form_state['values']['accounts']);
+  $init = FALSE;
+
+  // Inserting values for Data Group sharing
+  foreach ($accounts as $value) {
+    $rec = db_result(db_query("SELECT 1 FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d", $uid, $contact_uid, $value));
+    if (empty($rec)) {
+      db_query("INSERT INTO {data_group_sharing} (uid, contact_uid, nid, all_instances) VALUES (%d, %d, %d, %d)", $uid, $contact_uid, $value, 1);
+      $init = TRUE;
+    } else {
+      continue;
+    }
+  }
+  if ($init) {
+    drupal_set_message('Data Group(s) have been shared');
+  } else {
+    drupal_set_message('Data Group(s) are already shared!');
+  }
+  drupal_goto("get/data-groups/list", "id=" . $uid);
+}
+
+/**
+ * Validation for Data Group Form
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_data_listing_form_validate($form, &$form_state) {
+  $accounts = array_filter($form_state['values']['accounts']);
+  $init = FALSE;
+  if (empty($accounts)) {
+    form_set_error('group', 'Please select a data group to be shared.');
+  }
+
+  // Inserting values for Data Group sharing
+
+  foreach ($accounts as $value) {
+    $rec = db_result(db_query("SELECT COUNT(uid) FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d", $uid, $contact_uid, $value));
+    if ($rec->num_rows) {
+      
+    }
+  }
+  if ($init) {
+    
+  }
+}
+
+/**
+ * Theme form for Data Group sharing table
+ * @param $form
+ */
+function theme_custom_shared_data_listing_form($form) {
+  $rows = array();
+  if (!empty($form['accounts'])) {
+    foreach ($form['accounts'] as $key => $value) {
+      if (is_numeric($key)) {
+        $row = array(
+            array('data' => drupal_render($form['accounts'][$key]), 'class' => 'funky', 'width' => '10%'),
+            array('data' => drupal_render($form['group'][$key]), 'width' => '90%'),
+        );
+        $rows[] = $row;
+      }
+    }
+    $header = array(theme('table_select_header_cell'), array('data' => t('Data Groups')));
+  } else {
+    $header = array(t('Data Groups'));
+    $row = array();
+    $row[] = array(
+        'data' => t('No Data Groups found'),
+    );
+    $rows[] = $row;
+  }
+  $output = theme('table', $header, $rows) . drupal_render($form);
+  return $output;
+}
+
+/**
+ * Custom callback to get the instance of webform from Lightbox
+ * @param $nid
+ * @param $uid
+ */
+function custom_shared_get_instances($nid) {
+  $output = drupal_get_form('custom_shared_show_instances_form', $nid);
+  print $output;
+  exit;
+}
+
+/**
+ * Form callback from the Shadowbox listing to select the instance and share.
+ * @param $form
+ */
+function custom_shared_show_instances_form($form, $nid) {
+  global $user;
+  $uid = $user->uid;
+  if (is_numeric(arg(2))) {
+    $arg = arg(2);
+  }
+  $form = array();
+  $node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = " . $nid));
+  if ($node_title == 'Contact Info') {
+    $data_title = 'Name';
+  } else {
+    $data_title = 'Title';
+  }
+  $rs = db_query("SELECT sid FROM {datagroup_submissions} s
+                    INNER JOIN {users} u ON u.uid = s.uid
+                    INNER JOIN {node} n ON n.nid = s.nid
+                    WHERE s.uid = %d AND s.nid = %d", $uid, $nid);
+
+  if (db_affected_rows()) {
+    $accounts = array();
+    $cid = array();
+    $selected = array();
+
+    // For already selected data, which will show as selected when the reloads fot the first time
+    $que = db_query("SELECT DISTINCT di.sid
+                      FROM data_group_shared_instance di 
+                      INNER JOIN data_group_sharing ds ON di.shared_id = ds.share_id
+                      WHERE ds.uid = %d AND ds.contact_uid = %d AND di.nid = %d", $arg, $uid, $nid);
+    while ($sel = db_fetch_array($que)) {
+      $selected[] = $sel['sid'];
+    }
+
+    while ($row = db_fetch_array($rs)) {
+      $sql = db_query("SELECT dsdata.data,dsdata.cid,wc.name as field_name FROM {datagroup_submitted_data} dsdata
+                        INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                        WHERE dsdata.sid = %d AND wc.nid = %d ", $row['sid'], $nid);
+
+      while ($sub_data = db_fetch_array($sql)) {
+        $cid[$row['sid']][] = $sub_data['cid'];
+        if ($sub_data['field_name'] === $data_title) {
+          $title = $sub_data['data'];
+        }
+      }
+
+      $accounts[$row['sid']] = '';
+      $form['instances'][$row['sid']] = array(
+          '#value' => $title,
+          '#type' => 'item',
+      );
+    }
+    $form['accounts'] = array(
+        '#type' => 'checkboxes',
+        '#default_value' => $selected,
+        '#options' => $accounts,
+    );
+    $form['cids'] = array(
+        '#type' => 'hidden',
+        '#value' => serialize($cid),
+    );
+  }
+  $form['nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $nid,
+  );
+  $form['share_uid'] = array(
+      '#type' => 'hidden',
+      '#value' => $arg,
+  );
+  $form['share_instances'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next'),
+  );
+  return $form;
+}
+
+/**
+ * Theme function for instance Form
+ * @param $form
+ */
+function theme_custom_shared_show_instances_form($form) {
+  $rows = array();
+  if (!empty($form['accounts'])) {
+    foreach ($form['accounts'] as $key => $value) {
+      if (is_numeric($key)) {
+        $row = array(
+            array('data' => drupal_render($form['instances'][$key]), 'width' => '90%'),
+            array('data' => drupal_render($form['accounts'][$key]), 'class' => 'funky', 'width' => '10%'),
+        );
+        $rows[] = $row;
+      }
+    }
+    $header = array(array('data' => t('Data Group Instances')), theme('table_select_header_cell'));
+  } else {
+    $header = array(t('Data Groups'));
+    $row = array();
+    $row[] = array(
+        'data' => t('No Data Groups found'),
+    );
+    $rows[] = $row;
+  }
+  $output = theme('table', $header, $rows) . drupal_render($form);
+  return $output;
+}
+
+/**
+ * Submit function for the instance submission form
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_show_instances_form_submit($form, &$form_state) {
+  global $user;
+  $temp = array();
+//  $insert = FALSE;
+
+  $values = $form_state['values'];
+  $cids = unserialize($values['cids']);
+
+//  $uid = $user->uid;
+  $nid = $values['nid'];
+  $share_uid = $values['share_uid'];
+
+  $accounts = array_filter($values['accounts']);
+  if (!empty($accounts)) {
+    foreach ($accounts as $value) {
+      if ($value) {
+        $temp[$value] = $value;
+      }
+    }
+//    print_r($cids);exit;
+    $_SESSION['instance_data']['values'] = $temp;
+    $_SESSION['instance_data']['cids'] = $cids;
+
+//    $insert = db_result(db_query(" SELECT COUNT(share_id) FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+//    if (!$insert) {
+//      db_query("INSERT INTO {data_group_sharing} (uid, contact_uid, nid, status) VALUES (%d, %d, %d, %d)", $share_uid, $uid, $nid, 1);
+//      $id = db_last_insert_id('data_group_sharing', 'share_id');
+//
+//      // selected instances in $temp variable
+//      foreach ($temp as $index) {
+//        $exists = db_result(db_query(" SELECT COUNT(id) FROM {data_group_shared_instance} WHERE shared_id = %d AND nid = %d AND sid = %d ", $id, $nid, $index));
+//        // $cids contains the array of all the instances
+//        if (!$exists) {
+//          $c = $cids[$index];
+//          foreach ($c as $val) {
+//            db_query("INSERT INTO {data_group_shared_instance} (shared_id, nid, sid, cid) VALUES (%d, %d, %d, %d)", $id, $nid, $index, $val);
+//          }
+//        }
+//      }
+//      $_SESSION['instance_data']['values'] = $temp;
+//      $_SESSION['instance_data']['cids'] = $cids;
+//      drupal_set_message('Changes have been updated');
+//    } else {
+//      $id = db_result(db_query(" SELECT share_id FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+//      // selected instances in $temp variable
+//      foreach ($temp as $index) {
+//        $exists = db_result(db_query(" SELECT COUNT(id) FROM {data_group_shared_instance} WHERE shared_id = %d AND nid = %d AND sid = %d ", $id, $nid, $index));
+//        // $cids contains the array of all the instances
+//        if (!$exists) {
+//          $c = $cids[$index];
+//          foreach ($c as $val) {
+//            db_query("INSERT INTO {data_group_shared_instance} (shared_id, nid, sid, cid) VALUES (%d, %d, %d, %d)", $id, $nid, $index, $val);
+//          }
+//        }
+//      }
+//    }
+  }
+  drupal_goto('share/data-groups/' . $share_uid . '/' . $nid . '/fields');
+}
+
+/**
+ * Validation function for the instance submission form
+ * 
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_show_instances_form_validate($form, &$form_state) {
+  global $user;
+  $temp = array();
+  $insert = FALSE;
+
+  $values = $form_state['values'];
+//  $cids = unserialize($values['cids']);
+
+  $uid = $user->uid;
+  $nid = $values['nid'];
+  $share_uid = $values['share_uid'];
+
+  $accounts = array_filter($values['accounts']);
+  if (empty($accounts)) {
+    form_set_error('group', 'No instance(s) of Data group is Selected.');
+  }
+//  if (!empty($accounts)) {
+//    foreach ($accounts as $value) {
+//      if ($value) {
+//        $temp[$value] = $value;
+//      }
+//    }
+//    $id = db_result(db_query(" SELECT share_id FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+//    // selected instances in $temp variable
+//    foreach ($temp as $index) {
+//      $exists = db_result(db_query(" SELECT COUNT(id) FROM {data_group_shared_instance} WHERE shared_id = %d AND nid = %d AND sid = %d ", $id, $nid, $index));
+//      // $cids contains the array of all the instances
+//      if ($exists) {
+//        drupal_set_message('Selected instance(s) were already shared.', 'warning');
+//      } else {
+//        $insert = TRUE;
+//      }
+//    }
+//    if ($insert) {
+//      drupal_set_message('Selected Data has been shared.');
+//    }
+//  }
+  return;
+}
+
+/**
+ * Custom Callback view the list of available data groups.
+ * 
+ * @global type $base_url
+ * @global $user $user
+ * @return type
+ */
+function custom_shared_datagroups() {
+  global $user;
+  $output = '';
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+  $output.= '<div class="div_body">
+              <div class="page_brdr_mid_min" style="min-height:401px;">
+              <ul class="shortcut-buttons-set">';
+
+  $rs = db_query("SELECT nid, title FROM {node} WHERE type = '%s' AND status = %d ORDER BY title ASC", 'webform', 1);
+  while ($row = db_fetch_array($rs)) {
+    $name = $row['title'];
+    $url = 'view/data/' . $row['nid'] . '/' . $user->uid;
+
+    $view = l('View', $url);
+    $share = l('Share', 'share/data-groups/' . $row['nid']);
+
+    $extra = '<span>' . $view . ' | ' . $share . '</span>';
+
+    $title = '<span><img alt="icon" border="0" src="' . $image_path . '/images/myprofile.png" width="100" /><br />
+      ' . $name . '<br /></span>';
+
+    $output.= '<li>' . l($title, $url, array('html' => TRUE, 'attributes' => array('class' => 'shortcut-button'))) . $extra . '</li>';
+  }
+
+  $output.= '</ul>
+              </div>
+             </div>';
+
+  return $output;
+}
+
+/**
+ * Callback to show all instances of Data Group
+ * @param $user
+ * @param $group_id
+ */
+function custom_shared_datagroups_instances($user, $group_id) {
+  $output = '';
+  drupal_set_title('Share - ' . $group_id->title . ' Information');
+  $nid = $group_id->nid;
+  $output.= drupal_get_form('custom_shared_show_instances_form', $nid);
+  return $output;
+}
+
+/**
+ * Callback to show all the fields of Data Group
+ * @param $user
+ * @param $group_id
+ */
+function custom_shared_datagroups_fields($user, $group_id) {
+  $output = '';
+  drupal_set_title('Share - ' . $group_id->title . ' Fields');
+  $output.= drupal_get_form('custom_shared_datagroups_fields_form');
+  return $output;
+}
+
+/**
+ * Form showing all the fields of Data Group
+ * @param $form
+ * @param $nid
+ */
+function custom_shared_datagroups_fields_form(&$form_state) {
+  global $user;
+  $uid = $user->uid;
+  $form = array();
+  $selected = array();
+  if (is_numeric(arg(2))) {
+    $arg = arg(2);
+  }
+  if (is_numeric(arg(3))) {
+    $nid = arg(3);
+  }
+
+  $rs = db_query("SELECT wc.cid, wc.name, wc.type FROM webform_component wc 
+                  INNER JOIN node n ON n.nid = wc.nid 
+                  WHERE wc.nid = %d ORDER by wc.weight", $nid);
+
+  if (db_affected_rows()) {
+    $accounts = array();
+
+    $count = " SELECT COUNT(shared_fields) ";
+    $mysql_query = "FROM data_group_sharing WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ";
+    $num = db_result(db_query($count . $mysql_query, $arg, $uid, $nid, 1));
+    if ($num) {
+      $count = " SELECT shared_fields ";
+      $que = db_result(db_query($count . $mysql_query, $arg, $uid, $nid, 1));
+      $fields = unserialize($que);
+      foreach ($fields as $cid) {
+        $selected[] = $cid;
+      }
+    }
+
+    while ($row = db_fetch_array($rs)) {
+      $title = $row['name'] . '(' . $row['type'] . ')';
+
+      $accounts[$row['cid']] = '';
+      $form['fields'][$row['cid']] = array(
+          '#value' => $title,
+          '#type' => 'item',
+      );
+    }
+    $form['accounts'] = array(
+        '#type' => 'checkboxes',
+        '#default_value' => $selected,
+        '#options' => $accounts,
+    );
+  }
+  $form['nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $nid,
+  );
+  $form['share_uid'] = array(
+      '#type' => 'hidden',
+      '#value' => $arg,
+  );
+  $form['share_fields'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next'),
+  );
+  return $form;
+}
+
+/**
+ * Theme function for Data group fields listing form
+ * @param $form
+ */
+function theme_custom_shared_datagroups_fields_form($form) {
+  $rows = array();
+  if (!empty($form['accounts'])) {
+    foreach ($form['accounts'] as $key => $value) {
+      if (is_numeric($key)) {
+        $row = array(
+            array('data' => drupal_render($form['fields'][$key]), 'width' => '90%'),
+            array('data' => drupal_render($form['accounts'][$key]), 'class' => 'funky', 'width' => '10%'),
+        );
+        $rows[] = $row;
+      }
+    }
+    $header = array(array('data' => t('Data Group Fields')), theme('table_select_header_cell'));
+  } else {
+    $header = array(t('Data Groups'));
+    $row = array();
+    $row[] = array(
+        'data' => t('No Data Groups found'),
+    );
+    $rows[] = $row;
+  }
+  $output = theme('table', $header, $rows) . drupal_render($form);
+  return $output;
+}
+
+/**
+ * Form submit for submitting all the Data Group Instance fields
+ * @param type $form
+ * @param type $form_state
+ */
+function custom_shared_datagroups_fields_form_submit($form, &$form_state) {
+//  global $user;
+  $temp = array();
+  $values = $form_state['values'];
+  //$uid = $user->uid;
+  $nid = $values['nid'];
+  $share_uid = $values['share_uid'];
+
+  $accounts = array_filter($values['accounts']);
+
+  if (!empty($accounts)) {
+    foreach ($accounts as $value) {
+      if ($value) {
+        $temp[$value] = $value;
+      }
+    }
+//    print_r($temp);exit;
+    $_SESSION['fields_data'] = $temp;
+  }
+  drupal_goto('share/data-groups/' . $share_uid . '/' . $nid . '/complete');
+}
+
+/**
+ * Form validation for Data Group Instance fields
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_datagroups_fields_form_validate($form, &$form_state) {
+  global $user;
+  $temp = array();
+  $values = $form_state['values'];
+  $uid = $user->uid;
+  $nid = $values['nid'];
+  $share_uid = $values['share_uid'];
+  $accounts = array_filter($values['accounts']);
+  if (empty($accounts)) {
+    form_set_error('group', 'No field(s) of Data group is Selected.');
+  }
+  if (!empty($accounts)) {
+    foreach ($accounts as $value) {
+      if ($value) {
+        $temp[$value] = $value;
+      }
+    }
+    $update = db_result(db_query(" SELECT COUNT(share_id) FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+    if ($update) {
+      drupal_set_message('Selected Field(s) were already shared.', 'warning');
+    } else {
+      drupal_set_message('Fields data has been updated');
+    }
+  }
+}
+
+/**
+ * Custom Callback which shows the form for completing the share process
+ * @param $user
+ * @param $group_id
+ * @return $output
+ */
+function custom_shared_datagroups_complete($user, $group_id) {
+  $output = '';
+  drupal_set_title('Share - ' . $group_id->title . ' Complete');
+  $output.= '<div class="user-share-heading"><h3>Select how do want ' . $group_id->title . ' to interact with your information.</h3></div>';
+  $output.= drupal_get_form('custom_shared_datagroups_complete_form');
+  return $output;
+}
+
+/**
+ * Form to complete the sharing process
+ */
+function custom_shared_datagroups_complete_form(&$form_state) {
+  global $user;
+  $uid = $user->uid;
+  if (is_numeric(arg(2))) {
+    $arg = arg(2);
+  }
+  if (is_numeric(arg(3))) {
+    $nid = arg(3);
+  }
+
+  $form = array();
+  $options = array(1 => '');
+  $form['download'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Do you want Contact to download this Data Group Information'),
+      '#options' => $options,
+      '#attributes' => (1) ? array('checked' => 'checked') : '',
+  );
+
+  $form['download_date'] = array(
+      '#type' => 'date',
+      '#title' => 'Download Expriration Date',
+  );
+  $form['share_date'] = array(
+      '#type' => 'date',
+      '#title' => 'Sharing Expriration Date',
+  );
+
+  // when date has been already saved.
+  $que = db_query(" SELECT download_time, share_time FROM data_group_sharing WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $arg, $uid, $nid, 1);
+  if (db_affected_rows()) {
+    while ($sel = db_fetch_array($que)) {
+      $download_time = $sel['download_time'];
+      $share_time = $sel['share_time'];
+    }
+    $form['download_date']['#default_value'] = array('year' => date("Y", $download_time), 'month' => date("n", $download_time), 'day' => date("j", $download_time));
+    $form['share_date']['#default_value'] = array('year' => date("Y", $share_time), 'month' => date("n", $share_time), 'day' => date("j", $share_time));
+  }
+
+  $form['shares'] = array(
+      '#type' => 'submit',
+      '#value' => 'Share',
+  );
+  return $form;
+}
+
+/**
+ * Submit function for completing sharing process
+ * @param $form
+ * @param $form_state
+ */
+function custom_shared_datagroups_complete_form_submit($form, &$form_state) {
+  global $user;
+  if (is_numeric(arg(2))) {
+    $share_uid = arg(2);
+  }
+  if (is_numeric(arg(3))) {
+    $nid = arg(3);
+  }
+  $init = FALSE;
+
+  $uid = $user->uid;
+  $values = $form_state['values'];
+
+  $month = $values['download_date']['month'];
+  $day = $values['download_date']['day'];
+  $year = $values['download_date']['year'];
+
+  $download_date = mktime(date("H"), date("i"), date("s"), $month, $day, $year);
+
+  $month = $values['share_date']['month'];
+  $day = $values['share_date']['day'];
+  $year = $values['share_date']['year'];
+
+  $share_date = mktime(date("H"), date("i"), date("s"), $month, $day, $year);
+
+  // ------------------- this is new data submission with help of sessions.
+
+  if (isset($_SESSION['instance_data'])) {
+    $temp = $_SESSION['instance_data']['values'];
+    $cids = $_SESSION['instance_data']['cids'];
+  }
+  if (isset($_SESSION['fields_data'])) {
+    $fields_data = $_SESSION['fields_data'];
+  }
+
+  $insert = db_result(db_query(" SELECT COUNT(share_id) FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+  if (!$insert) {
+    db_query("INSERT INTO {data_group_sharing} (uid, contact_uid, nid, status, shared_fields, download_time, share_time) VALUES (%d, %d, %d, %d, '%s', %d, %d)", $share_uid, $uid, $nid, 1, serialize($fields_data), $download_date, $share_date);
+    $id = db_last_insert_id('data_group_sharing', 'share_id');
+
+    // selected instances in $temp variable
+    foreach ($temp as $index) {
+      $exists = db_result(db_query(" SELECT COUNT(id) FROM {data_group_shared_instance} WHERE shared_id = %d AND nid = %d AND sid = %d ", $id, $nid, $index));
+      // $cids contains the array of all the instances
+      if (!$exists) {
+        $c = $cids[$index];
+        foreach ($c as $val) {
+          db_query("INSERT INTO {data_group_shared_instance} (shared_id, nid, sid, cid) VALUES (%d, %d, %d, %d)", $id, $nid, $index, $val);
+          $init = TRUE;
+        }
+      } else {
+        drupal_set_message('Selected Data was already shared', 'warning');
+      }
+    }
+    if ($init) {
+      drupal_set_message('Data has been shared');
+    }
+    unset($_SESSION['instance_data']);
+    unset($_SESSION['fields_data']);
+  } else {
+    $id = db_result(db_query(" SELECT share_id FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d AND status = %d ", $share_uid, $uid, $nid, 1));
+    db_query(" UPDATE data_group_sharing SET shared_fields = '%s', download_time = %d, share_time = %d WHERE share_id = %d ", serialize($fields_data), $download_date, $share_date, $id);
+    // selected instances in $temp variable
+    foreach ($temp as $index) {
+      $exists = db_result(db_query(" SELECT COUNT(id) FROM {data_group_shared_instance} WHERE shared_id = %d AND nid = %d AND sid = %d ", $id, $nid, $index));
+      // $cids contains the array of all the instances
+      if (!$exists) {
+        $c = $cids[$index];
+        foreach ($c as $val) {
+          db_query("INSERT INTO {data_group_shared_instance} (shared_id, nid, sid, cid) VALUES (%d, %d, %d, %d)", $id, $nid, $index, $val);
+          $init = TRUE;
+        }
+      } else {
+        drupal_set_message('Selected Data was already shared', 'warning');
+      }
+    }
+    if ($init) {
+      drupal_set_message('Data has been shared and updated');
+    }
+    unset($_SESSION['instance_data']);
+    unset($_SESSION['fields_data']);
+  }
+  drupal_goto('share/data-groups/' . $share_uid . '/' . $nid . '/complete');
+}
+
+/**
+ * Implement hook_form_alter()
+ * 
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function custom_shared_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_login') {
+    $form['name']['#attributes'] = array('class' => 'defaultText', 'title' => 'Email Address');
+    $form['placeholder'] = array(
+        '#type' => 'textfield',
+        '#value' => 'Enter Password here',
+        '#attributes' => array('onFocus' => 'setPass();'),
+        '#weight' => 1,
+    );
+    $form['pass']['#attributes'] = array('onBlur' => 'checkPass();');
+    $form['submit']['#value'] = 'Sign In';
+  }
+}
+
+/**
+ * Custom Callback for Dashboard page.
+ * 
+ * @return string
+ */
+function custom_shared_dashboard() {
+  global $user;
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+
+  $output = '';
+  $output.= '<div style="margin-top: 15px">';
+  $output.= '<div class="blue-box-title">My Account</div>';
+
+  // start main group div
+  $output.= '<div class="main-groups">';
+
+  $output.= '<div class="sub-main-groups">';
+
+  $output.= '<div class="group">';
+  $output.= '<div class="sub-grp">';
+
+  $img = '<img alt="" src="' . $image_path . '/images/data-group.png" />';
+  $link = l($img, 'user/account', array('html' => TRUE));
+
+  $output.= '<div class="group-img">' . $link . '</div>';
+  $output.= '<div class="group-title"><p>' . l('My Data Groups', 'user/account') . '</p></div>';
+  $output.= '</div>';
+  $output.= '</div>';
+
+  $output.= '<div class="group">';
+  $output.= '<div class="sub-grp">';
+
+  $img = '<img alt="" src="' . $image_path . '/images/contacts-group.png" />';
+  $link = l($img, 'user/contacts', array('html' => TRUE));
+
+  $output.= '<div class="group-img">' . $link . '</div>';
+  $output.= '<div class="group-title"><p>' . l('My Contacts', 'user/contacts') . '</p></div>';
+  $output.= '</div>';
+  $output.= '</div>';
+
+  $output.= '<div class="group">';
+  $output.= '<div class="sub-grp">';
+
+  $img = '<img alt="" src="' . $image_path . '/images/profile-info.png" />';
+  $link = l($img, 'user/' . $user->uid . '/edit', array('html' => TRUE));
+
+  $output.= '<div class="group-img">' . $link . '</div>';
+  $output.= '<div class="group-title"><p>' . l('Update Profile Information', 'user/' . $user->uid . '/edit') . '</p></div>';
+  $output.= '</div>';
+  $output.= '</div>';
+
+  $output.= '</div>';
+  // end main div
+  $output.= '</div>';
+
+  $output.= '<div class="blue-box-title">Business Administration</div>';
+  $output.= '<div class="the-button">
+             <div style="margin:0 auto;width: 350px;">
+                <input type="button" class="big-button" value="Manage Product Registration" id="hit_big" />
+             </div>  
+             </div>';
+  $output.= '</div>';
+  return $output;
+}
+
+/**
+ * Custom callback to show all the DataGroup's Data that is shared with me
+ * 
+ * @return string
+ */
+function custom_shared_shared_with_me($shared_uid) {
+  global $user;
+  $s_uid = $shared_uid->uid;
+
+  profile_load_profile($shared_uid);
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+  $img = '<img alt="Data Group" src="' . $image_path . '/images/database_icon.png" />';
+  drupal_set_title($shared_uid->profile_first_name);
+  $output = '';
+
+  $by_me = '';
+  $with_me = '';
+  $unshare = FALSE;
+
+  $share = 'Download';
+  if (arg(1) === 'by-me') {
+    $data_rs = db_query("SELECT s.nid,n.title FROM data_group_sharing s
+                      INNER JOIN users u on u.uid = s.contact_uid
+                      INNER JOIN node n on n.nid = s.nid
+                      WHERE  s.uid = %d AND s.contact_uid = %d ", $s_uid, $user->uid);
+    $by_me = 'class="bolds"';
+    $with_me = '';
+    $share = 'Unshare';
+    $unshare = TRUE;
+  } else {
+    $data_rs = db_query("SELECT s.nid,n.title FROM data_group_sharing s
+                      INNER JOIN users u on u.uid = s.contact_uid
+                      INNER JOIN node n on n.nid = s.nid
+                      WHERE  s.uid = %d AND s.contact_uid = %d ", $user->uid, $s_uid);
+    $by_me = '';
+    $with_me = 'class="bolds"';
+  }
+  // Main shared me section
+  $output.= '<div id="shared_me">';
+  if (db_affected_rows()) {
+    $output.= '<div class="shared_head">';
+
+    $output.= '<div class="shared_tab1">';
+    $output.= '<p ' . $with_me . '>' . l('Shared with me', 'user-shared/with-me/' . $s_uid) . '</p>';
+    $output.= '</div>';
+    $output.= '<div class="shared_tab2">';
+    $output.= '<p ' . $by_me . '>' . l('Shared by me', 'user-shared/by-me/' . $s_uid) . '</p>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+
+    $output.= '<div class="shared_up">';
+    $output.= '<div class="up1"></div>';
+    $output.= '<div class="up2"></div>';
+    $output.= '<div class="up3"></div>';
+    $output.= '</div>';
+
+    $output.= '<div class="shared_body">';
+
+    $tool_link = '';
+    $attr = array();
+    while ($data_rw = db_fetch_object($data_rs)) {
+      $ti = $data_rw->title;
+      $nid = $data_rw->nid;
+      // this is data group DIV
+      $output.= '<div class="main_dt_group">'; // Main Data Group
+
+      $output.= '<div class="wraps_dt_group">'; // Data Group wrapper
+
+      $output.= '<div class="data_group">';
+
+      // Setting the Unshare or Download Link
+      if ($unshare) {
+        $tool_link = 'unshare/data-group/' . $s_uid . '/' . $nid; // Setting the Unshare Link
+        $attr['attributes'] = array('class' => 'delete_entry');
+//        $attr['query'] = array('destination' => $_GET['q']);
+      } else {
+        $tool_link = 'download/shared-with-me/data/' . $s_uid . '/'. $nid; // Set the Download Link here
+      }
+      //View Data Link
+      $view_link = 'user/contact/data/' . $s_uid . '/' . $nid;
+      $output.= '<div class="img_wrap">';
+      $output.= '<div class="dg_img">' . l($img, $view_link, array('html' => TRUE)) . '</div>';
+      $output.= '</div>';
+
+      $output.= '<div class="dg_title">';
+      $output.= '<p>' . l($ti, $view_link) . '</p>';
+      $output.= '</div>';
+      $output.= '<div class="dg_tools">';
+      $output.= '<div class="tool1"><p>' . l('View', $view_link) . '</p></div>';
+      $output.= '<div class="seperator"></div>';
+      $output.= '<div class="tool2"><p>' . l($share, $tool_link, $attr) . '</p></div>';
+      $output.= '</div>';
+
+      // data group DIV - ENDs
+      $output.= '</div>';
+      $output.= '<div class="users_shadow"></div>';
+
+      $output.= '</div>'; //wrapper - END
+
+      $output.= '</div>'; //main wrapper - END
+    }
+
+
+    $output.= '</div>';
+
+    $output.= '<div class="shared_down">';
+    $output.= '<div class="down1"></div>';
+    $output.= '<div class="down2"></div>';
+    $output.= '<div class="down3"></div>';
+    $output.= '</div>';
+
+    $output.= '<div class="clear"></div>';
+  } else {
+    $output.= '<div class="shared_head">';
+
+    $output.= '<div class="shared_tab1">';
+    $output.= '<p ' . $with_me . '>' . l('Shared with me', 'user-shared/with-me/' . $s_uid) . '</p>';
+    $output.= '</div>';
+    $output.= '<div class="shared_tab2">';
+    $output.= '<p ' . $by_me . '>' . l('Shared by me', 'user-shared/by-me/' . $s_uid) . '</p>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+
+    $output.= '<div class="shared_up">';
+    $output.= '<div class="up1"></div>';
+    $output.= '<div class="up2"></div>';
+    $output.= '<div class="up3"></div>';
+    $output.= '</div>';
+
+    $output.= '<div class="shared_body" style="height: 100px">';
+    $output.= '<p style="margin-left: 10px">No data has been shared</p>';
+    $output.= '</div>';
+
+    $output.= '<div class="shared_down">';
+    $output.= '<div class="down1"></div>';
+    $output.= '<div class="down2"></div>';
+    $output.= '<div class="down3"></div>';
+    $output.= '</div>';
+
+    $output.= '<div class="clear"></div>';
+  }
+  // shared me section ENDs
+  $output.= '</div>';
+  return $output;
+}
+
+/**
+ * Custom callback to unshare the shared Data Group
+ * 
+ * @param $share_uid
+ * @param $node
+ */
+function custom_shared_unshare_datagroup($share_uid, $node) {
+  global $user;
+  $uid = $user->uid;
+  $s_uid = $share_uid->uid;
+  $nid = $node->nid;
+
+  $query = db_query(" SELECT share_id FROM {data_group_sharing} WHERE uid = %d AND contact_uid = %d AND nid = %d ", $s_uid, $uid, $nid);
+  if (is_numeric($query->num_rows)) {
+    $id = db_result($query);
+    db_query(" DELETE FROM data_group_sharing WHERE share_id = %d ", $id);
+    $q = db_query(" SELECT shared_id FROM {data_group_shared_instance} WHERE shared_id = %d ", $id);
+    if (is_numeric($q->num_rows)) {
+      db_query(" DELETE FROM data_group_shared_instance WHERE shared_id = %d ", $id);
+    }
+  }
+  $path = 'user-shared/by-me/' . $s_uid;
+  drupal_set_message('The Data Group <i>"' . $node->title . '"</i> has been Unshared.');
+  drupal_goto($path);
+}

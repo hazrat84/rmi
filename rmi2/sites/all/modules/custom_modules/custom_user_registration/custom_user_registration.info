@@ -1,0 +1,4 @@
+name = Custom User Registration Form
+description = Registration Form for Individual
+project = custom
+core = 6.x

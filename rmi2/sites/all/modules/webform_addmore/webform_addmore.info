@@ -1,0 +1,6 @@
+name = Webform Add More
+description = Provides add more option for webforms module.
+package = Webform
+core = 6.x
+dependencies[] = ahah_helper
+

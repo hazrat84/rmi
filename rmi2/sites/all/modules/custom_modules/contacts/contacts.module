@@ -1,0 +1,340 @@
+<?php
+
+/**
+ * Implements hook_help().
+ */
+function contacts_help($section = 'admin/help#custom', $arg = NULL) {
+  $output = '';
+  switch ($section) {
+    case 'admin/content/customs/contacts':
+      $output = '<p>' . t('This module is used to view contacts and their share data.') . '</p>';
+      break;
+  }
+
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function contacts_perm() {
+  return array('access user contacts');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function contacts_menu() {
+  $items = array();
+  // Submissions listing.
+  $items['user/contacts'] = array(
+      'title' => 'My Contacts',
+      'page callback' => 'contacts_view',
+      'access arguments' => array('access user contacts'),
+      'description' => 'View Contacts of the User.',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['user/contacts/%'] = array(
+      'title' => 'My Contacts',
+      'page callback' => 'contacts_view_data_groups',
+      'access arguments' => array('access user contacts'),
+      'description' => 'View shared data groups of the users contact.',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['user/contact/data/%/%'] = array(
+      'title' => 'My Contacts',
+      'page callback' => 'contacts_view_data_group_listing',
+      'access arguments' => array('access user contacts'),
+      'description' => 'View shared data groups of the users contact.',
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['user/contact/datagroup/detail/%/%/%'] = array(
+      'title' => t('My datagroup details'),
+      'page callback' => 'contacts_share_datagroup_detail',
+      'access arguments' => array('access user contacts'),
+      'type' => MENU_NORMAL_ITEM
+  );
+  $items['user/contact/subdatagroup/detail/%/%/%'] = array(
+      'title' => t('My subdatagroups details'),
+      'page callback' => 'contacts_share_subdatagroup_detail',
+      'access arguments' => array('access user contacts'),
+      'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+function contacts_view() {
+  global $user;
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+  $title = '<img alt="icon" border="0" src="' . $image_path . '/images/my_account.png" width="100" />';
+
+  $output = '';
+  $output.= '<div id="contacts">';
+
+  $rs = db_query("SELECT distinct(s.uid) FROM {data_group_sharing} s INNER JOIN users u on u.uid = s.`contact_uid` WHERE s.contact_uid = %d", $user->uid);
+  if (db_affected_rows()) {
+    while ($row = db_fetch_array($rs)) {
+      $uid = $row['uid'];
+      $u = user_load($uid);
+      profile_load_profile($u);
+      // User Listing DIV
+      $output.= '<div class="users_div">';
+
+      $output.= '<div class="users_item">';
+
+      $name = $u->profile_first_name . " " . $u->profile_last_name;
+      $link_to = 'user-shared/with-me/' . $uid;
+      $url = l($title, $link_to, array('html' => TRUE, 'attributes' => array('class' => 'shortcut-button')));
+
+      $output.= '<div class="users_wrapper">';
+      $output.= '<div class="users_img">' . $url . '</div>';
+      $output.= '</div>';
+
+      $output.= '<div class="users_title">';
+      $output.= '<p>' . l($name, $link_to) . '</p>';
+      $output.= '</div>';
+      $output.= '</div>';
+
+      $output.= '<div class="users_shadow">';
+      $output.= '</div>';
+
+      // User Listing DIV - END
+      $output.= '</div>';
+      $i++;
+    }
+  } else {
+    $output.= '<div class="blue-box-title">' . t("No Contact Found") . '</div>';
+  }
+
+
+  $output.= '</div>';
+  return $output;
+}
+
+function contacts_view_data_groups() {
+  drupal_add_js(drupal_get_path('module', 'contacts') . '/contacts.js');
+  global $user;
+  $output = '<div class="contacts">
+						<div class="left">
+							<h4>Contacts</h4>
+							<div class="wbox">
+								<div class="body">
+									<ul>';
+  $rs = db_query("SELECT distinct(s.`uid`) FROM `data_group_sharing` S INNER JOIN users u on u.uid = s.`contact_uid` WHERE s.contact_uid = %d", $user->uid);
+  while ($row = db_fetch_array($rs)) {
+    $contact_user = user_load($row['uid']);
+    profile_load_profile($contact_user);
+    if ($row['uid'] == arg(2)) {
+      $class = 'selected';
+    } else {
+      $class = '';
+    }
+    $output.= '<li class="' . $class . '">' . l($contact_user->profile_first_name . " " . $contact_user->profile_last_name, "user/contacts/" . $row['uid']) . '</li>';
+  }
+  $current_contact = user_load(arg(2));
+  profile_load_profile($current_contact);
+  $output.= '</ul>
+								</div>
+							</div>
+						</div>';
+
+  $output.= '<div class="mid">
+                <h4>Shared Data Groups By Me</h4>
+                <div class="wbox">
+                  <div class="body">
+                    <h3>' . $current_contact->profile_first_name . " " . $current_contact->profile_last_name . '</h3>
+                      <div class="data share_data" style="padding-top:0px;">
+                      <ul>';
+  $data_rs = db_query("SELECT s.`nid`, n.title FROM `data_group_sharing` s
+                      INNER JOIN users u on u.uid = s.`contact_uid`
+                      INNER JOIN node n on n.nid = s.nid
+                      WHERE  s.uid = %d AND s.`contact_uid` = %d", arg(2), $user->uid);
+  while ($data_rw = db_fetch_object($data_rs)) {
+    $output.= '<li>' . l($data_rw->title, "user/contact/data/" . arg(2) . "/" . $data_rw->nid) . '</li>';
+  }
+  $output.= '</ul>
+                </div>
+                  </div>
+                </div>
+              </div>';
+
+  $cur_contact = user_load($user->uid);
+  profile_load_profile($cur_contact);
+  $output.= '<div class="right">
+							<h4>Shared Data Groups To Me</h4>
+							<div class="wbox">
+								<div class="body">
+									<h3>' . $cur_contact->profile_first_name . " " . $cur_contact->profile_last_name . '</h3>
+									<div class="data share_data" style="padding-top:0px;">
+									<ul>';
+  $data_rs = db_query("SELECT s.`nid`, n.title FROM `data_group_sharing` s
+                      INNER JOIN users u on u.uid = s.`contact_uid`
+                      INNER JOIN node n on n.nid = s.nid
+                      WHERE  s.uid = %d AND s.`contact_uid` = %d", $user->uid, arg(2));
+  while ($data_rw = db_fetch_object($data_rs)) {
+    $output.= '<li>' . l($data_rw->title, "user/contact/data/" . arg(2) . "/" . $data_rw->nid) . '</li>';
+  }
+  $output.= '</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>';
+  return $output;
+}
+
+function contacts_view_data_group_listing() {
+  global $user;
+  $output = '';
+  $contact = user_load(arg(3));
+  profile_load_profile($contact);
+  $node_name = db_result(db_query("SELECT `title` FROM {node} WHERE nid = %d", arg(4)));
+  if ($node_name == 'Contact Info') {
+    $data_title = 'Name';
+  } else {
+    $data_title = 'Title';
+  }
+  drupal_set_title($contact->profile_first_name . " " . $contact->profile_last_name . " - " . $node_name);
+  $output.= '<div class="data-boxes">';
+  $rs = db_query("SELECT data.sid, n.title FROM `datagroup_submissions` data INNER JOIN node n on n.nid = data.nid
+                     WHERE data.`uid` = %d AND data.`nid` = %d", arg(3), arg(4));
+  if (db_affected_rows()) {
+    $i = 1;
+    while ($row = db_fetch_object($rs)) {
+      $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                        INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                        WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s'", $row->sid, arg(4), $data_title));
+      $output.= '<div class="data-instances">';
+      
+      $output.= '<div class="ins-title">';
+      $output.= '<p>' . $title . '</p>';
+      $output.= '</div>';
+      
+      $output.= '<div class="ins-detail">';
+      $output.= '<p>' . l(t('View details'), 'user/contact/datagroup/detail/' . arg(3) . '/' . arg(4) . '/' . $row->sid . '/' . $i) . '</p>';
+      $output.= '</div>';
+      
+      $output.= '</div>';
+      $i++;
+    }
+  } else {
+    $output.= '<div class="blue-box-title">' . t('There is no submission against this data group') . '</div>';
+  }
+
+  $output.= '<div class="clear"></div>';
+  $output.= '</div>';
+  return $output;
+}
+
+function contacts_share_datagroup_detail() {
+  global $base_url;
+  $dId = arg(5);
+  $sid = arg(6);
+  $contact = user_load(arg(4));
+  profile_load_profile($contact);
+  $node_name = db_result(db_query("SELECT `title` FROM {node} WHERE nid = %d", arg(5)));
+  drupal_set_title($contact->profile_first_name . " " . $contact->profile_last_name . " - " . $node_name);
+  $result = db_query("SELECT wc.`cid`, wc.`name`, wc.`type`, dsd.data  FROM `datagroup_submitted_data` dsd
+                        INNER JOIN `webform_component` wc ON wc.cid= dsd.cid
+                        WHERE dsd.uid = %d AND wc.nid = %d and dsd.sid = %d ORDER BY  `wc`.`cid` ASC ", arg(4), $dId, $sid);
+  $output = '';
+  $output_datagroups = '<div class="form2">';
+  while ($row = db_fetch_object($result)) {
+    $data = array();
+    $data['label'] = $row->name;
+    if (( $data['label'] == 'Amount') && !empty($row->data)) {
+      $data['value'] = "$" . number_format($row->data, 2, '.', ',');
+    } else if (($row->type == "date") && !empty($row->data)) {
+      $data['value'] = date("m-d-Y", strtotime($row->data));
+    } else if (($row->type == "file") && !empty($row->data)) {
+      $file_path = db_result(db_query("SELECT filepath from files where fid = %d", $row->data));
+      $data['value'] = l(t('View Attachment'), $base_url . "/" . $file_path);
+    } else if ($row1->type != "file" && !empty($row->data) && preg_match('/\b(?:(?:https?|ftp):)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i', $row->data)) {
+      $data['value'] = l(t('View Link'), "/" . $row->data);
+    } else if ($row->name == 'Title' || $row->name == 'title') {
+      $data['label'] = '';
+      $data['value'] = '';
+    } else {
+      $data['value'] = $row->data;
+    }
+    /* if($data['value'] == '') {
+      $data['value'] = '-';
+      } */
+    if (!empty($data['label'])) {
+      $output_datagroups .= '<div class="row">
+			<div class="left1">' . $data['label'] . '</div><div class="left2">' . $data['value'] . '</div>
+		</div>';
+    }
+  }
+  $output .= $output_datagroups . '</div><div class="clear"></div><br/>';
+  $result_subdatagroups = db_query("SELECT wa.`fieldset_cid`, wa.`fieldset_name`  FROM `webform_addmore` wa WHERE wa.nid = $dId ORDER BY  `wa`.`fieldset_cid` ASC ");
+  while ($row1 = db_fetch_object($result_subdatagroups)) {
+    $rows = array();
+    $header = array(t('Title'), t('Action'));
+    $i = 1;
+    $output_subdatagroups = '<h3>' . $row1->fieldset_name . '</h3><div class="data-table">';
+    $result_sub1 = db_query("SELECT ssid, cid, title, nid FROM `sub_datagroup_submissions` WHERE cid =$row1->fieldset_cid and nid=$dId and sid = $sid");
+    if (db_affected_rows()) {
+      while ($row2 = db_fetch_object($result_sub1)) {
+        /* $rs = db_query("SELECT wc.name,wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+          INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+          WHERE ssid = $row2->ssid and wc.nid = $row2->nid ORDER BY  `wc`.`cid` ASC "); */
+        $title = db_result(db_query("SELECT sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                             INNER JOIN `webform_component` wc ON wc.cid = sub_data.cid
+                                             WHERE ssid = %d AND wc.nid = %d AND wc.`form_key` LIKE '%_title%' AND wc.`pid` <> 0", $row2->ssid, $row2->nid));
+        //$tbrow = array($row1->fieldset_name . " " . $i, array('data' => l(t('View Detail'), 'user/contact/subdatagroup/detail/'.arg(4).'/'.$row2->nid.'/'.arg(6).'/'. $row2->ssid.'/'.  arg(7) .'/'.$i ), 'class' => 'action_data'));
+        if (empty($title)) {
+          $title = $row1->fieldset_name;
+        }
+        $tbrow = array($title, array('data' => l(t('View Detail'), 'user/contact/subdatagroup/detail/' . arg(4) . '/' . $row2->nid . '/' . arg(6) . '/' . $row2->ssid . '/' . arg(7) . '/' . $i), 'class' => 'action_data'));
+        $rows[] = $tbrow;
+        $i++;
+      }
+    } else {
+      $rows[] = array(array('data' => t("There are no submissions for this sub-data group"), 'width' => '100%', 'class' => 'no_record_found'), '&nbsp;');
+    }
+
+    $output_subdatagroups .=theme_table($header, $rows, $attributes = array(), $caption = NULL);
+  }
+  $output .= $output_subdatagroups;
+
+  return $output;
+}
+
+function contacts_share_subdatagroup_detail() {
+  $contact = user_load(arg(4));
+  profile_load_profile($contact);
+  $node_name = db_result(db_query("SELECT `title` FROM {node} WHERE nid = %d", arg(5)));
+  drupal_set_title($contact->profile_first_name . " " . $contact->profile_last_name . " - " . $node_name);
+  $ssid = arg(7);
+  $nid = arg(5);
+  $output = '';
+  $out = '<div class="form2">';
+  $rs = db_query("SELECT wc.name,wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                        INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                        WHERE ssid = $ssid and wc.nid = $nid ORDER BY  `wc`.`cid` ASC ");
+  $fields = array();
+  while ($row1 = db_fetch_object($rs)) {
+    $data = array();
+    $data['label'] = $row1->name;
+    if (($data['label'] == 'Loan Amount') && !empty($row1->data)) {
+      $data['value'] = "$" . number_format($row1->data, 2, '.', ',');
+    } else if ($row1->type == "date" && !empty($row1->data)) {
+      $data['value'] = date("m-d-Y", strtotime($row1->data));
+    } else if ($row1->type == "file" && !empty($row1->data)) {
+      $file_path = db_result(db_query("SELECT filepath from files where fid = %d", $row1->data));
+      $data['value'] = l(t('View Attachment'), $base_url . "/" . $file_path);
+    } else if (strstr($row1->name, 'title') || strstr($row1->name, 'Title')) {
+      $data['label'] = '';
+    } else {
+      $data['value'] = $row1->data;
+    }
+    if (!empty($data['label'])) {
+      $out .= '<div class="row">
+			<div class="left1">' . $data['label'] . '</div><div class="left2">' . $data['value'] . '</div>
+		</div>';
+    }
+  }
+  $output .= $out . '</div><div class="clear"></div>';
+  return $output;
+}

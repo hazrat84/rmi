@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * This module provides a simple way to manage custom restaurants.
+ *
+ * @author Shabir Ahmad
+ */
+
+/**
+ * Implements hook_init().
+ */
+function user_datagroups_init() {
+
+}
+
+
+/**
+ * Implements hook_help().
+ */
+function user_datagroups_help($section = 'admin/help#custom', $arg = NULL) {
+    $output = '';
+    switch ($section) {
+        case 'admin/content/custom':
+            $output = '<p>' . t('This page lists all of the content on the site that may have a webform attached to it.') . '</p>';
+            break;
+    }
+
+    return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function user_datagroups_perm() {
+    return array('access dynamic datagroups');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function user_datagroups_menu() {
+    $items = array();
+
+    $items['node/add/webform/user/%'] = array(
+        'title' => t('Add Data group'),
+        'description' => t('Add a local datagroup that is only visible to this user.'),
+        'page callback' => 'add_datagroup',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+    return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function user_datagroups_form_alter(&$form, &$form_state, $form_id) {
+  
+  global $user;
+  global $base_url;
+
+  if($form_id == 'webform_node_form' and in_array('authenticated user',$user->roles)){
+    
+    unset($form['body_field']['format']);
+    unset($form['body_field']['teaser_include']);
+    unset($form['buttons']['preview']);
+    unset($form['menu']);
+  
+    $form['buttons']['submit']['#value'] = t('Next');
+    $form['buttons']['submit']['#submit'][2] = 'user_datagroups_form_alter_submit';
+    $form['options']['status']['#default_value'] = FALSE;
+
+  }
+  
+  if($form_id == 'form_builder_webform_save_form' and in_array('authenticated user',$user->roles)) {
+    $form['#action'] = $base_url.'/user/account'; 
+  }
+ 
+}
+
+function user_datagroups_form_alter_submit(&$form, $form_state) {
+  global $base_url;
+  $nid = $form_state['nid'];
+  $uid = $form_state['values']['uid'];
+  $sql = db_query('INSERT INTO local_datagroups (uid,nid) VALUES (%d,%d)',$uid,$nid);
+}
+

@@ -1,0 +1,38 @@
+<?php
+/**
+ * @file
+ * Webform component for Social Security Numbers.
+ *
+ * The module adds a new component to Webform components list which provides
+ * an option to define SSN (Social Security Number).
+ */
+
+/**
+ * Implements hook_webform_component_info().
+ */
+function webform_ssn_webform_component_info() {
+  $components = array();
+
+  $components['ssn'] = array(
+    'label' => t('SSN'),
+    'description' => t('Social Security Number.'),
+    'file' => 'components/ssn.inc',
+  );
+
+  return $components;
+}
+
+/**
+ * Implements hook_element().
+ */
+function webform_ssn_elements() {
+  $elements['webform_ssn'] = array(
+    '#input' => TRUE,
+    '#default_value' => array(
+      'ssn3' => '',
+      'ssn2' => '',
+      'ssn4' => '',
+    ),
+  );
+  return $elements;
+}

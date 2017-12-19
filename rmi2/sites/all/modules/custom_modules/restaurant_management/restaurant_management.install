@@ -1,0 +1,80 @@
+<?php
+// $Id: stalker.install,v 1.1 2009/10/23 17:06:00 eaton Exp $
+
+/**
+ * @file
+ * Install file for Restaurant Registration module
+ */
+
+/**
+ * Implementation of hook_schema().
+ *
+ * Describe the module's data model as an associative array. This removes
+ * the requirement to write database-specific SQL to create tables.
+ *
+ * For full details: http://drupal.org/node/146843
+ */
+function restaurant_management_schema() {
+  $schema = array();
+  $schema['registration'] = array(
+  'description' => t('table for describing registration!'),
+  'fields' => array(
+    'registration_id' => array(
+      'description' => t('Registration id!'),
+      'type' => 'serial',
+      'not null' => TRUE,
+    ),
+    'nid' => array(
+      'description' => t('node id'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+    'sid' => array(
+      'description' => t('webform submision id!'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+    'owner_uid' => array(
+      'description' => t('datagroup owner id!'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+    'registered_uid' => array(
+      'description' => t('user id who want to register!'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+     'registration_date' => array(
+      'description' => t('Date on which user registerd!'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+     'details' => array(
+      'description' => t('Serialize data for registration detail.'),
+      'type' => 'text',
+      'not null' => TRUE,
+    ),
+  ),
+  'primary key' => array('registration_id'),
+);
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ *
+ * Perform initial setup tasks.
+ */
+
+function restaurant_management_install() {
+  drupal_install_schema('restaurant_management');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ *
+ * Perform final clean-up tasks.
+ */
+function restaurant_management_uninstall() {
+  drupal_uninstall_schema('restaurant_management');
+}

@@ -1,0 +1,61 @@
+<?php
+// $Id: stalker.install,v 1.1 2009/10/23 17:06:00 eaton Exp $
+
+/**
+ * @file
+ * Install file for User datagroups module
+ */
+
+/**
+ * Implementation of hook_schema().
+ *
+ * Describe the module's data model as an associative array. This removes
+ * the requirement to write database-specific SQL to create tables.
+ *
+ * For full details: http://drupal.org/node/146843
+ */
+function user_datagroups_schema() {
+  $schema = array();
+  $schema['local_datagroups'] = array(
+  'description' => t('table for describing local datagroups!'),
+  'fields' => array(
+    'id' => array(
+      'description' => t('local data group id!'),
+      'type' => 'serial',
+      'not null' => TRUE,
+    ),
+    'nid' => array(
+      'description' => t('node id'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+    
+    'uid' => array(
+      'description' => t('datagroup owner id!'),
+      'type' => 'int',
+      'not null' => TRUE,
+    ),
+  ),
+  'primary key' => array('id'),
+);
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ *
+ * Perform initial setup tasks.
+ */
+
+function user_datagroups_install() {
+  drupal_install_schema('user_datagroups');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ *
+ * Perform final clean-up tasks.
+ */
+function user_datagroups_uninstall() {
+  drupal_uninstall_schema('user_datagroups');
+}

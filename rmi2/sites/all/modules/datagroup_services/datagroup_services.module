@@ -1,0 +1,425 @@
+<?php
+
+/**
+ * Implementation of hook_perm().
+ */
+function datagroup_services_perm() {
+    return array('access datagroup services');
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function datagroup_services_help($section) {
+    switch ($section) {
+        case 'admin/help#services_node':
+            return t('<p>Provides echo methods to services applications. Requires services.module.</p>');
+        case 'admin/modules#description':
+            return t('Provides echo methods to services applications. Requires services.module.');
+    }
+}
+
+/**
+ * Implementation of hook_service()
+ */
+function datagroup_services_service() {
+    return array(
+        //contenttypes.selectNodes
+        array(
+            '#method' => 'datagroup.getmydata',
+            '#callback' => 'get_my_data_groups',
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#return' => 'struct',
+            '#access arguments' => array('access datagroup services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+            )
+        ),
+        array(
+            '#method' => 'datagroup.getdetail',
+            '#callback' => 'get_data_group_detail',
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#return' => 'struct',
+            '#access arguments' => array('access datagroup services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+                array(
+                    '#name' => 'datagroupID',
+                    '#type' => 'int',
+                    '#descriptions' => t('Data group id .')
+                ),
+                array(
+                    '#name' => 'submissionID',
+                    '#type' => 'int',
+                    '#descriptions' => t('Data group instance id .')
+                ),
+                 array(
+                    '#name' => 'direction',
+                    '#type' => 'int',
+                    '#descriptions' => t('A share direction .')
+                ),
+            )
+        ),
+        array(
+            '#method' => 'user.register',
+            '#callback' => 'user_service_register',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'first_name',
+                    '#type' => 'text',
+                    '#descriptions' => t('First Name')
+                ),
+                array(
+                    '#name' => 'last_name',
+                    '#type' => 'text',
+                    '#descriptions' => t('Last Name')
+                ),
+                array(
+                    '#name' => 'email',
+                    '#type' => 'text',
+                    '#descriptions' => t('E-mail')
+                ),
+                array(
+                    '#name' => 'password',
+                    '#type' => 'password',
+                    '#descriptions' => t('password.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('User Register Web Service')
+        ),
+        array(
+            '#method' => 'user.forgotpassword',
+            '#callback' => 'user_service_forgotpassword',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => t('email_address'),
+                    '#type' => 'text',
+                    '#descriptions' => t('E-mail address')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Forgot password Web Service')
+        ),
+        array(
+            '#method' => 'user.changepassword',
+            '#callback' => 'user_service_change_password',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'old_password',
+                    '#type' => 'password',
+                    '#descriptions' => t('Old password.')
+                ),
+                array(
+                    '#name' => 'new_password',
+                    '#type' => 'password',
+                    '#descriptions' => t('New password.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Change password Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.getinstances',
+            '#callback' => 'get_data_group_instances',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'data_group_id',
+                    '#type' => 'int',
+                    '#descriptions' => t('Data Group ID.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Get Data Group Instances Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.getcontacts',
+            '#callback' => 'get_contact_list',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Get Contact List Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.getshareddata',
+            '#callback' => 'get_shared_data_groups_list',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Get Shared Data Groups List Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.getsharedinstances',
+            '#callback' => 'get_shared_data_group_instances',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+                array(
+                    '#name' => 'data_id',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Data group id.')
+                ),
+                array(
+                    '#name' => 'direction',
+                    '#type' => 'int',
+                    '#descriptions' => t('A share direction .')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Get Shared Data Groups List Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.unshare',
+            '#callback' => 'data_group_unshare',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+                array(
+                    '#name' => 'data_id',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Data group id.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Data Group Unshare Web Service')
+        ),
+        array(
+            '#method' => 'user.search',
+            '#callback' => 'searchuser',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'email',
+                    '#type' => 'text',
+                    '#descriptions' => t('E-mail')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Search User Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.share',
+            '#callback' => 'share_data_groups',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+                array(
+                    '#name' => 'data_id',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Data group id.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Share Data Groups Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.shareQR',
+            '#callback' => 'share_data_groups_qr',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+                array(
+                    '#name' => 'nid',
+                    '#type' => 'int',
+                    '#descriptions' => t('Node id of sharing data group.')
+                ),
+                
+                array(
+                    '#name' => 'sids',
+                    '#type' => 'varchar',
+                    '#descriptions' => t('Submission ids.')
+                ), 
+
+                array(
+                    '#name' => 'fields',
+                    '#type' => 'varchar',
+                    '#descriptions' => t('Fields ids.')
+                ), 
+
+                array(
+                    '#name' => 'download_time',
+                    '#type' => 'int',
+                    '#descriptions' => t('Time up to which the datagroup can be downloaded.')
+                ),
+
+                array(
+                    '#name' => 'share_time',
+                    '#type' => 'int',
+                    '#descriptions' => t('Time up to which the datagroup can be shared.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Share Data Groups Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.registrationQR',
+            '#callback' => 'register_data_groups_qr',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'nid',
+                    '#type' => 'int',
+                    '#descriptions' => t('Node Id.')
+                ),
+                array(
+                    '#name' => 'sid',
+                    '#type' => 'int',
+                    '#descriptions' => t('Submision id .')
+                ),
+                array(
+                    '#name' => 'owner_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('uid of business owner.')
+                ),
+                
+                array(
+                    '#name' => 'registered_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('Uid of individual.')
+                ), 
+
+                array(
+                    '#name' => 'details',
+                    '#type' => 'varchar',
+                    '#descriptions' => t('Details data.')
+                ),
+
+              
+            ),
+            '#return' => 'array',
+            '#help' => t('Register business Web Service')
+        ),
+        array(
+            '#method' => 'user.user_login',
+            '#callback' => 'custom_user_login',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => t('email_address'),
+                    '#type' => 'text',
+                    '#descriptions' => t('E-mail address')
+                ),
+                array(
+                    '#name' =>  t('password'),
+                    '#type' => 'password',
+                    '#descriptions' => t('Password.')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Share Data Groups Web Service')
+        ),
+        array(
+            '#method' => 'datagroup.getsharelist',
+            '#callback' => 'data_group_share_list',
+            '#access arguments' => array('access datagroup services'),
+            '#file' => array('file' => 'inc', 'module' => 'datagroup_services'),
+            '#args' => array(
+                array(
+                    '#name' => 'userID',
+                    '#type' => 'int',
+                    '#descriptions' => t('A user id.')
+                ),
+                array(
+                    '#name' => 'contact_uid',
+                    '#type' => 'int',
+                    '#descriptions' => t('A Contact id .')
+                ),
+            ),
+            '#return' => 'array',
+            '#help' => t('Data Group Unshare Web Service')
+        ),
+    );
+}

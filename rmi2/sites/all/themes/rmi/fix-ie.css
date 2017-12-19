@@ -1,0 +1,83 @@
+.form-submit {
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4089cb', endColorstr='#7cbaf3',GradientType=0 ); /* IE6-8 */
+}
+
+.form-text {
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f5f7f9', endColorstr='#dee4ea',GradientType=0 ); /* IE6-8 */
+}
+
+fieldset {
+  border: none !important;
+  margin: 0;
+  padding: 0;
+}
+
+.body .wrapper .content .box .node {
+  border: none !important;
+}
+
+.dd2 {
+  background: url("images/text-field_left.png");
+  border: none !important;
+  border-radius: 0px;
+  color: #8A8A8A !important;
+  filter: none;
+  height: 37px;
+  float: left;
+  font-family: Arial,Helvetica,sans-serif;
+  font-size: 14px !important;
+  text-align: left;
+  width: 150px !important;
+}
+
+.webform-component-textarea .resizable-textarea {
+  background: url("images/text_area.png");
+  display: block;
+  float: left;
+  height: 167px;
+  overflow: hidden;
+  padding: 10px;
+  width: 230px;
+  border: none !important;
+  border-radius: 0px;
+}
+
+.webform-component-textarea .resizable-textarea .text-area {
+  background: none repeat scroll 0 0 transparent;
+  border: 0 none;
+  color: #8A8A8A;
+  font: 14px Arial,Helvetica,sans-serif;
+  border: none !important;
+  outline: medium none;
+  overflow: auto;
+  height: 165px;
+  width: 100%;
+  padding: 0;
+}
+
+.form-item input.form-text {
+  background: url("images/input_field.png");
+  filter: none;
+  border: none !important;
+  border-radius: 0px;
+  color: #8A8A8A;
+  float: left;
+  height: 36px;
+  line-height: 38px;
+  outline: medium none;
+  padding-left: 16px;
+  width: 182px !important;
+}
+
+.webform-component-textarea .form-item .resizable-textarea textarea {
+  height: 165px;
+}
+#edit-cv-wrapper .description {
+    padding-bottom: 8px;
+}
+#webform-client-form-4 div.form-item table {width: 100%; border-collapse:separate;}
+#column_right_adsense{float:left; width:31%; }
+.header .left .nav ul li ul { width:122%; }
+.customer_care_div .info_container {width:24%; float: left;}
+.get_started { background: #4089cb; }
+.social_links { width: 85px;}

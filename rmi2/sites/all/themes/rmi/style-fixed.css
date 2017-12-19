@@ -1,0 +1,1294 @@
+/* CSS Document */
+* {
+  margin: 0;
+  padding: 0;
+}
+ul,ol {
+  margin-left: 20px;
+}
+body {font-family: Arial;color: #343434;font-size: 14px;}
+.clear {clear: both}
+img, img a {border: 0}
+p {
+  color: #343434;
+  font: 16px Arial;
+}
+a {
+  color: #1A6195;
+  font-family: Arial;
+}
+h3 {
+  font-family: Arial;
+  color: #1A6195;
+}
+.bolds {font-weight: bold}
+/*Body*/
+.head-wrapper {
+  height: auto;
+  margin: 0 auto;
+  width: 968px;
+}
+div.error {
+  border: 1px solid #CCCCCC;
+  padding: 5px;
+}
+div.error ul {
+  list-style: none;
+  margin: 0;
+}
+div.status {
+  background-color: #CCFFCC;
+  border: 1px solid #CCCCCC;
+  margin-bottom: 15px;
+  padding: 5px;
+}
+div.status ul {
+  list-style: none;
+  margin: 0;
+}
+div.warning {
+  background-color: #FFFFDD;
+  color: #222200;
+  padding: 5px;
+  border: 1px solid #CCCCCC;
+}
+div.wrapper,
+div#body_bg {
+  float: left;
+  height: auto;
+  margin: 0 auto;
+  width: 100%;
+}
+div.wrapper .wrap {
+  height: auto;
+  margin: 0 auto;
+  width: 960px;
+}
+#header_wraps {float: left;background: url("images/bkd_rpt.png") top left repeat;width: 100%;background-color: #EEEEEE;border-bottom: dashed 1px #CCC;height: auto;}
+#body_bg .wrapper {height: auto;margin:0 auto;float: left;margin-bottom: 20px}
+#body_bg .wrapper .wrap {float: left;height: auto;width: 100%}
+#body_bg .wrapper .logins {margin: 0 auto;float: none;height: auto;width: 480px}
+div.body-wrapper {
+  width: 960px;
+  height: auto;
+  margin: 0 auto;
+}
+div#footer_wraps {
+  background: url("images/footer-bg.gif") top left repeat-x;
+  float: left;
+  height: 105px;
+  width: 100%;  
+}
+.page_slider{width: 100%;float: left}
+.video_carousel{width: 960px;float: left;margin-top: 25px;margin-bottom: 15px}
+.video{width: 385px; float: left}
+.carousel{width:58%; float: left; margin-left: 10px;}
+.paragraph{font-size: 16px; margin-top: 10px; float: left;}
+.paragraph p {font-size: 16px; text-align:justify; line-height: 20px;}
+.paragraph p strong span {font-size: 15px;}
+.node .content p {font-size: 16px;text-align: justify}
+/* Carousel Css Starts */
+.item-list ul li{
+  width: 280px;
+}
+.item-list{
+  /*width: 899px !important;*/
+  width: 519px !important;
+}
+.views-label-title{
+  width: auto;
+  display: none;
+}
+.views-label-field-image-fid{
+  display: none;
+}
+.views-label-body{
+  display: none;
+}
+.jcarousellite-prev{
+  float: left;
+  margin-top: 190px;
+  vertical-align: middle;
+}
+.jcarousellite-next{
+  float: left;
+  margin-top: 190px;
+  vertical-align: middle;
+}
+.field-content p{
+  padding-left: 0px !important;
+  width: 275px;
+  padding-right: 0px !important;
+  margin-top: 15px;
+  text-align: justify !important;
+}
+.field-content img{
+  margin-top: 10px;
+}
+div.jcarousellite div.item-list{
+  background-color: transparent;
+  border: none;
+}
+
+div.jcarousellite {
+  background-color: #FFFFFF;
+  border: 2px solid #BDBDBD;
+  border-radius: 5px;
+  direction: ltr;
+  width: 562px;
+  height: 346px;
+}
+/* Carousel Css Ends */
+
+/* Header Css Starts */
+ul#nice-menu-1 {
+  display: inline;
+  margin-top: 15px;  
+}
+#logo {
+  float: left; margin-top: 5px;
+}
+.header {
+  height: 121px;background: url(images/header_bg.png) top left repeat-x;width: 100%;
+}
+
+.header_bottom {
+  background: url("images/shadow.png") no-repeat center top ;
+  height: 12px;
+  margin-bottom: 5px;
+}
+.header_menus {
+  width: 760px;
+  height: auto;
+  float: right;
+}
+.secd_menu {
+
+}
+.secd_menu ul{
+  margin-top: 12px;
+}
+ul.nice-menu a {
+  padding: 4px 18px;
+}
+ul.nice-menu-down .menuparent a {
+  padding: 4px 18px;
+}
+.welcome {
+  width: auto;margin: 15px -25px 0 5px;font-size: 100%;color: #5E9BBF;float: right;text-align: right;
+}
+.social_icons_div{
+  width:auto; float:right; margin-right: 25px;
+}
+.social_icon{
+  width: auto; float:right; margin-top:9px; margin-left: 15px;
+}
+.social_icon a{
+  border-style: none;
+}
+.twitter{
+  margin-top: 12px;
+}
+.rss{
+  margin-top: 12px;
+}
+.my_account_link_div {
+  background: url(images/welcomes.png) top left no-repeat; width: 310px; height: 63px; float: right; margin-top: 5px;
+}
+.my_account_link_div a {
+  color: #1A6195;width: auto;margin-left: 15px; font-size: 18px;text-decoration: none;
+}
+.my_account_link_div a:hover{
+  text-decoration: underline;
+}
+.my_account_link_div a.active {
+  color: #343434;
+}
+.second_menu {
+  margin-right: 10px;
+  float: right;
+}
+.second_menu ul li {
+  list-style: none; width: auto; float: left;
+}
+/* Header Css Ends */
+
+/* Top Menus Css Starts */
+#cfnavbar {
+  float: right;
+}
+
+* html #cfnavbar #block-nice_menus-1 .content .nice-menu-1 ul{ /*IE only rule. Add extra margin-bottom*/
+  margin-bottom: 1em;
+}
+
+#cfnavbar #block-nice_menus-1 .content .nice-menu-1 ul li {
+  display: inline;
+  border-right: solid 1px;
+  float: left !important;
+  background-color: none !important;
+}
+
+ul.nice-menu li {
+  display: inline;
+  border-right: solid 1px !important;
+  float: left !important;
+  background-color: none !important;
+}
+
+li.menuparent ul li{
+  display: inline;
+  border-right: none !important;
+  float: left !important;
+  background-color: none !important;
+}
+
+li.menuparent ul li a{
+  font-size: 90% !important;
+  font-weight: normal !important;
+}
+li.menuparent ul li.last a{
+  font-size: 90% !important;
+  font-weight: normal !important;
+}
+
+#cfnavbar .block-nice_menus-1 .content .nice-menu-1 ul li.last{
+  border: none !important;
+}
+ul.nice-menu li.last {
+  border: none !important;
+}
+
+ul.nice-menu li a, ul.nice-menu li span {
+  float: left !important;
+  color: #4E4F4F;
+  font-weight: bold;
+  font-size: 14px;  
+  text-decoration: none;
+}
+ul.nice-menu li a.active {
+  color: #1A6195;
+}
+ul.nice-menu li.last a {
+
+}
+
+#cfnavbar .block-nice_menus-1 .content .nice-menu-1 ul li.last a {
+  padding: 3px 0px 2px 0px !important;
+}
+
+#cfnavbar .block-nice_menus-1 .content .nice-menu-1 ul li span{ /*Targets span tag to the right of #leftcorner below*/
+  padding-left: 0px !important;
+}
+
+#cfnavbar .block-nice_menus-1 .content .nice-menu-1 ul li a#rightcorner{
+  padding-right: 10px !important;
+}
+
+ul.nice-menu li a:hover{
+  text-decoration: underline !important;
+}
+
+#cfnavbar .block-nice_menus-1 .content .nice-menu-1 ul li.active a{
+  color: #65A2C5 !important;
+}
+ul.nice-menu li {
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-top-colors: none;
+  background: none !important;
+  border-color: -moz-use-text-color #CCCCCC #CCCCCC;
+  border-image: none;
+  border-right: 1px solid #CCCCCC;
+  border-style: none solid solid;
+  border-width: 0 1px 1px;
+  float: left;
+  border: none;
+}
+
+ul.nice-menu li.menuparent ul {
+  background-color: white;
+  border: 1px solid #E1F8FF;
+  float: left;
+  overflow: visible !important;
+  background: -moz-linear-gradient(top,  #ffffff,  #e7f7ff); /* FF */
+  background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#e7f7ff)); /* chrome */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e7f7ff'); /* IE */
+  z-index: 10000;
+}
+/* Top Menus Css Ends */
+
+/* Footer Css Starts */
+.footer {  
+  width: 960px; height: auto; text-align: center; font-size: 14px;margin: 0 auto;
+}
+.footer_left{
+  float:left; width: auto;
+}
+.footer_left ul {
+  list-style: none;
+  margin: 0;
+}
+.footer_left ul li {
+  text-align: left;color: #343434;line-height: 25px;
+}
+.footer_left ul li a {
+  width: auto; float:left; text-align: left;text-decoration: none;font-size: 12px; font-weight: bold;color: #343434;
+}
+.footer_left ul li a:hover {
+  width: auto; float:left; text-align: left; color: #343434;text-decoration: underline; 
+}
+.footer_right {
+  float: right;
+  color: #343434;
+}
+.copyright {
+  margin-top: 25px; border-bottom:solid 1px #343434; text-align: right; padding-bottom: 3px;
+}
+.footer_links{
+  text-align: right; padding-bottom: 3px; margin-top: -9px;
+}
+.footer_links ul {
+  margin-top: 10px;padding-left: 0;width: 100%;
+}
+.footer_links ul li{
+  list-style: none; float: left; margin-right: 80px;
+}
+.footer_links ul li.last{
+  list-style: none; float: left; margin-right: 0px;
+}
+.footer_links ul li a {
+  color: #343434; text-decoration: none; font-size: 12px; font-weight: bold;
+}
+.footer_links ul li a:hover{
+  color: #343434; text-decoration: underline; font-size: 12px; font-weight: bold;
+}
+/* Footer Css Ends */
+
+/* Carousel Css Starts */
+.item-list ul li div.views-field-title{
+  font-weight: bold; color: #5F6466; float: left; margin-top: 10px;
+}
+
+.item-list ul li{
+  /*width: 280px;*/ width: 240px;
+}
+.item-list{
+  /*width: 899px !important;*/
+}
+.views-label-title{
+  width: auto;
+  display: none;
+}
+.views-label-field-image-fid{
+  display: none;
+}
+.views-label-body{
+  display: none;
+}
+.jcarousellite-prev{
+  float: left;
+  margin-top: 150px;
+  vertical-align: middle;
+}
+.jcarousellite-next{
+  float: left;
+  margin-top: 150px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+.field-content p{
+  padding-left: 0px !important;
+  width: 240px;
+  padding-right: 0px !important;
+  /*margin-top: 15px;*/
+  text-align: justify !important;
+  float: left;
+}
+.item-list .field-content p{
+  margin-top: 0px !important;
+}
+.field-content img{
+  margin-top: 10px;
+}
+div.jcarousellite div.item-list{
+  background-color: transparent;
+  border: none;
+}
+.item-list .views-field-view-node{
+  float: left; margin-top: -6px;
+}
+/* Carousel Css Ends */
+
+/* Slider Css Starts */
+
+.rotor-items{width:955px !important;}
+.rotor-content {
+  position: static !important;
+}
+/* Slider Css Ends */
+
+/* footer message starts */
+.footer_msg {
+  text-align: right;
+}
+.footer_msg ul {float:right; margin-bottom: 5px}
+.footer_msg ul li {list-style: none; width:auto; float:left; color:#343434; font-size: 100%}
+.footer_msg ul li a {color:#343434; font-size: 100%; text-decoration: none; margin-left: 20px; font-weight: bold}
+.footer_msg ul li a:hover {color:#343434; font-size: 100%; text-decoration: underline; margin-left: 20px; font-weight: bold}
+/* footer message Ends */
+
+/* Solution Page Css starts */
+.page_panel {
+  float: left;
+  min-height: 450px;
+  background: #FFFFFF;
+  border: solid 1px #B7B7B7;
+  behavior: url(PIE.htc); border-radius: 5px;border-top: none;margin-bottom: 20px;
+}
+.page_panel_blue_belt {
+  background: url('images/page_panel_top_bg.png'); height: 43px; behavior: url(PIE.htc); border-radius: 5px; 
+  border-left: solid 1px #3C8ECC; border-right: solid 1px #3C8ECC;
+  width: 956px;
+}
+.page_panel_header {float: left; padding: 10px; color: #FFFFFF; font-size: 16px; font-weight: bold}
+.page_panel_body {color: #000000;padding: 10px}
+.page_panel_body .node {width: 100%}
+.page_panel_body .node .content p {margin-bottom: 15px}
+.plan_box{width: 25%; float: left; min-height: 300px; border: solid 1px #C1C1C1; behavior: url(PIE.htc); border-radius: 5px;
+          -moz-box-shadow:    1px 1px 1px 1px #D4D4D4; -webkit-box-shadow: 1px 1px 1px 1px #D4D4D4; box-shadow: 1px 1px 1px 1px #D4D4D4; background-color: #F2FBFF; 
+}
+/* Solution Page Css Ends */
+
+
+.nav3 ul li {float:right; list-style: none; margin-bottom: 10px;}
+
+/* For user login Password Field */
+#user-login .form-item {
+  margin: 0;
+}
+#user-login .my-form-wrapper {
+  border: 1px solid #00A7DA;
+  width: 400px;
+  height: 344px;
+  background-color: #FFFFFF;
+  border-radius: 2px;
+  margin: 80px 0;
+}
+#user-login .my-form-wrapper .forms-title {
+  background: url("images/login-head.gif") top left repeat-x;
+  height: 55px;
+  padding-left: 22px;
+  padding-top: 16px;
+}
+#user-login .my-form-wrapper .forms-title span {
+  font-size: 24px;
+  font-weight: bold;
+  color: #006EA4;
+}
+#user-login .form-item {
+  width: 350px;
+  margin-left: 25px;
+  margin-top: 25px;
+  margin-bottom: 25px;  
+}
+#user-login .form-item .description {
+  display: none;
+}
+#user-login .form-item .form-text {
+  width: 340px;
+  height: 48px;
+  border: 1px solid #b8b8b8;
+  border-radius: 2px;
+  background-color: #f8f8f8;
+  padding-left: 10px;
+  font-size: 16px;  
+  color: #b8b8b8;
+}
+#user-login .form-item label {
+  display: none;
+}
+#user-login #edit-submit {
+  background: url("images/login-button.gif") repeat-x;
+  border: none;
+  cursor: pointer;  
+  height: 40px;
+  margin-left: 25px;
+  color: #FFFFFF;
+  font-weight: bold;
+  width: 100px;
+}
+#user-login #edit-submit:hover {
+  background: url("images/login-button-hover.gif") repeat-x;  
+}
+#edit-pass {
+  display: none;
+}
+/* CSS for the Dashboard */
+.blue-box-title {
+  background: #E6F9FF;
+  border: 1px solid #DCDCDC;
+  color: #7F7F7F;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 12px;
+  float: left;
+  width: 924px;
+  font-weight: bold;
+}
+.main-groups {
+  width: 938px;
+  float: left;
+  padding: 30px 0;
+}
+.main-groups .sub-main-groups {
+  width: 590px;
+  margin: 0 auto;
+}
+.main-groups .sub-main-groups .group {
+  float: left;
+  width: 180px;
+  margin-right: 15px;
+}
+.main-groups .sub-main-groups .group .sub-grp {
+  margin: 0px auto; width: 160px;
+}
+.main-groups .sub-main-groups .group .sub-grp .group-img {
+  float: left;
+  width: 160px;
+  margin-bottom: 10px;
+}
+.main-groups .sub-main-groups .group .sub-grp .group-title {
+  float: left;
+  width: 160px;  
+}
+.main-groups .sub-main-groups .group .sub-grp .group-title p {
+  text-align: center;
+}
+.main-groups .sub-main-groups .group .sub-grp .group-title p a {
+  color: #1A6195;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+}
+#hit_big {
+  background: url("images/big-button.png") repeat-x;
+  border: none;
+  cursor: pointer;  
+  height: 59px;
+  width: 340px;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 25px 0;
+}
+#hit_big:hover {
+  background: url("images/big-button-hover.png") repeat-x;  
+}
+.the-button {
+  float: left;
+  width: 100%;
+  margin-bottom: 25px;
+}
+.plans {
+  width: 100%;
+}
+.plan-box {
+  background: url("images/plan-box.png") no-repeat;
+  float: left;
+  height: 355px;
+  margin: 40px 150px 40px 0;
+  width: 246px;
+}
+
+.plan-box .plan-title {
+  width: 100%;
+  height: 20px;
+  padding: 12px 0;  
+}
+.plan-box .plan-title p {
+  text-align: center;
+  color: #FFFFFF;
+  font-weight: bold;
+}
+.plan-box .plan-body {
+  width: 100%;  
+}
+
+.plan-box .plan-body .plan-head {
+  width: 100%;
+  color: #818181;
+  font-size: 18px;
+  padding: 10px 0;
+}
+.plan-box .plan-body .plan-head p {
+  text-align: center;
+  color: #818181;
+}
+.plan-box .plan-body .plan-head span.small-dollar {
+  font-size: 11px;
+}
+.plan-box .plan-body .plan-head p sup {
+  font-size: 16px;  
+}
+.plan-box .plan-body .plan-head span.digits {
+  font-size: 32px;
+  font-weight: bold;
+}
+.plan-box .plan-body .plan-list {
+  width: 100%;  
+}
+
+.plan-box .plan-body .plan-list p {
+  color: #7F7F7F;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 0;
+}
+ul.plan-tags {
+  list-style: none;
+  margin: 0 auto;
+  width: 165px;
+}
+ul.plan-tags li {
+  border-bottom: 1px solid #BDBDBD;
+  padding: 10px 0;
+}
+.plan-box .plan-buttons {
+  width: 100%;
+  margin-top: 22px;
+}
+#plan_button {
+  background: url("images/button_small.png") no-repeat;
+  border: none;
+  cursor: pointer;
+  height: 32px;
+  width: 102px;
+  color: #FFFFFF;
+  font-weight: bold;
+  font-size: 16px;
+}
+#shared_me {
+  width: 100%;
+  margin: 25px 0;
+  float: left;
+}
+#shared_me .shared_head {
+  width: 300px;
+  height: 50px;
+  float: left;
+}
+#shared_me .shared_head p {
+  color: #1A6195;
+  font-size: 16px;
+  text-align: center;
+}
+#shared_me .shared_head p a {
+  color: #1A6195;
+  font-size: 16px;
+  text-decoration: none;
+}
+#shared_me .shared_head .shared_tab1 {
+  background: url("images/tab1.png") left top no-repeat;
+  width: 142px;
+  height: 20px;
+  float: left;
+  padding: 15px 0;
+}
+#shared_me .shared_head .shared_tab2 {
+  background: url("images/tab2.png") left top no-repeat;
+  width: 140px;
+  height: 20px;
+  float: left;
+  padding: 15px 0;
+}
+#shared_me .shared_up {
+  width: 100%;
+  height: 11px;
+  float: left;
+}
+#shared_me .shared_up .up1 {
+  background: url("images/sharedup1.png") left top no-repeat;
+  width: 282px;
+  height: 11px;
+  float: left;
+}
+#shared_me .shared_up .up2 {
+  background: url("images/sharedup2.png") left top repeat-x;  
+  height: 11px;
+  width: 646px;
+  float: left;
+}
+#shared_me .shared_up .up3 {
+  background: url("images/sharedup3.png") left top no-repeat;
+  width: 10px;
+  height: 11px;
+  float: left;
+}
+#shared_me .shared_body {
+  background-color: #FAFAFA;
+  border-left: 1px solid #d7d7d7;
+  border-right: 1px solid #d7d7d7;
+  width: 936px;
+  float: left;
+  height: auto;
+  padding-top: 15px;
+}
+#shared_me .shared_down {
+  width: 100%;
+  height: 12px;
+  float: left;
+}
+#shared_me .shared_down .down1 {
+  background: url("images/shareddown1.png") left top no-repeat;
+  width: 22px;
+  height: 12px;
+  float: left;
+}
+#shared_me .shared_down .down2 {
+  background: url("images/shareddown2.png") left top repeat-x;  
+  height: 12px;
+  width: 896px;
+  float: left;
+}
+#shared_me .shared_down .down3 {
+  background: url("images/shareddown3.png") left top no-repeat;
+  width: 20px;
+  height: 12px;
+  float: left;
+}
+#shared_me .shared_body .main_dt_group {
+  float: left;
+  height: auto;
+  margin-bottom: 15px;
+  width: 225px;
+}
+#shared_me .shared_body .wraps_dt_group {
+  margin: 0 auto;
+  width: 183px;
+}
+#shared_me .shared_body .wraps_dt_group .users_shadow {  
+  width: 183px;
+}
+#shared_me .shared_body .data_group {
+  background-color: #FFFFFF;
+  border-radius: 5px;
+  border: 1px solid #000000;
+  width: 183px;
+  float: left;
+  height: auto;
+  margin: 0;
+}
+#shared_me .shared_body .data_group p {
+  text-align: center;  
+}
+#shared_me .shared_body .data_group p a {
+  color: #1A6195;
+  text-decoration: none;
+}
+#shared_me .shared_body .data_group .img_wrap {  
+  width: 100%;
+}
+#shared_me .shared_body .data_group .img_wrap .dg_img {
+  margin: 7px auto 0;
+  width: 67px;
+}
+#shared_me .shared_body .data_group .dg_title {
+  margin: 5px 0;
+  width: 100%;
+}
+#shared_me .shared_body .data_group .dg_title p a {
+  font-weight: bold;
+}
+#shared_me .shared_body .data_group .dg_tools {
+  width: 100%;
+  float: left;
+}
+
+#shared_me .shared_body .data_group .dg_tools .seperator {
+  background: url("images/seperator.png") left top repeat-x;  
+  height: 32px;
+  width: 1px;
+  float: left;
+}
+#shared_me .shared_body .data_group .dg_tools .tool1,
+#shared_me .shared_body .data_group .dg_tools .tool2 {
+  width: 91px;
+  float: left;
+  height: 32px;
+  background-color: #E9EEF5;
+}
+#shared_me .shared_body .data_group .dg_tools .tool1 {
+  border-radius: 0 0 0 5px;
+}
+#shared_me .shared_body .data_group .dg_tools .tool2 {
+  border-radius: 0 0 5px 0;
+}
+#shared_me .shared_body .data_group .dg_tools .tool1 p {
+  text-align: right;
+  margin-right: 12px;
+  margin-top: 7px;
+  font-size: 14px;
+}
+#shared_me .shared_body .data_group .dg_tools .tool2 p {
+  text-align: left;
+  margin-left: 12px;
+  margin-top: 7px;
+  font-size: 14px;
+}
+
+/* ------------ Specific CSS for My Accounts Data Group Section ------------ */
+
+.my_data {
+  float: left;
+  padding-top: 30px;
+  width: 100%;
+}
+.data_group {
+  float: left;
+  height: auto;
+  margin-bottom: 15px;
+  width: 312px;
+}
+.data_group .wraps_data_group {
+  margin:0 auto;
+  width: 255px;
+}
+.dt_shadow {
+  background: url("images/shadow_dt_group.png") center top no-repeat;
+  width: 253px;
+  height: 15px;
+  float: left;
+}
+.my_data .dt_group {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 5px;
+  float: left;
+  height: auto;
+  width: 255px;
+}
+.my_data .dt_group p a {
+  color: #1A6195;
+  text-decoration: none;
+}
+.my_data .dt_group .img_wrap {
+  width: 100%;
+}
+.my_data .dt_group .img_wrap .dg_img {
+  margin: 7px auto 0;
+  width: 67px;
+}
+.my_data .dt_group .dg_title {
+  margin: 5px 0;
+  width: 100%;
+}
+.my_data .dt_group .dg_title p {
+  text-align: center;
+}
+.my_data .dt_group .dg_title p a {
+  font-weight: bold;  
+}
+.my_data .dt_group .dg_tools {
+  float: left;
+  width: 100%;
+}
+.my_data .dt_group .dg_tools .tool1,
+.my_data .dt_group .dg_tools .tool2,
+.my_data .dt_group .dg_tools .tool3 {
+  background-color: #E9EEF5;
+  float: left;
+  height: 32px;
+  width: 84px;
+}
+.my_data .dt_group .dg_tools .tool1 {
+  border-radius: 0 0 0 5px;
+}
+.my_data .dt_group .dg_tools .tool2 {
+  width: 85px;
+}
+.my_data .dt_group .dg_tools .tool3 {
+  border-radius: 0 0 5px 0;
+}
+.my_data .dt_group .dg_tools .tool1 p {
+  font-size: 14px;
+  margin-right: 12px;
+  margin-top: 7px;
+  text-align: right;
+}
+.my_data .dt_group .dg_tools .tool2 p {
+  font-size: 14px;  
+  margin-top: 7px;
+  text-align: center;
+}
+.my_data .dt_group .dg_tools .tool3 p {
+  font-size: 14px;
+  margin-left: 12px;
+  margin-top: 7px;
+  text-align: left;
+}
+.my_data .dt_group .dg_tools .seperator {
+  background: url("images/seperator.png") repeat-x left top;
+  float: left;
+  height: 32px;
+  width: 1px;
+}
+
+/* ------------ Form Fields Generic ------------ */
+
+.form-item {
+  margin-bottom: 1em;
+  margin-top: 1em;  
+}
+.form-element label,
+.form-item label {  
+  font-weight: bold;
+  color: #000000;
+  float: left;
+  width: 200px;
+}
+.form-item .form-text {
+  background-color: #F8F8F8;
+  border: 1px solid #C5C5C5;
+  width: 340px;
+  height: 36px;
+  font-family: Arial;
+  border-radius: 2px;
+}
+html.js .resizable-textarea textarea,
+.form-textarea {
+  background-color: #F8F8F8;
+  border: 1px solid #C5C5C5;
+  font-family: Arial;
+  width: 475px;
+}
+.password-parent {
+  margin-bottom: 1em;
+}
+.form-submit {
+  background: url("images/buttons.png") repeat-x;
+  border: none;
+  cursor: pointer;
+  height: 35px;
+  color: #FFFFFF;
+  font-size: 16px;
+  width: 150px;
+}
+.form-submit:hover {
+  background: url("images/buttons-hover.png") repeat-x;
+}
+.resizable-textarea .grippie {
+  display: none;
+}
+fieldset {
+  border-radius: 5px;    
+  border: 1px solid #b8b8b8;
+  background-color: #e9f7fe;
+  width: 922px;
+}
+fieldset legend {
+  display: none;
+}
+fieldset fieldset {
+  width: 900px;
+  border: none;  
+}
+.form-select {
+  background-color: #FFFFFF;
+  border: 1px solid #bdc2c5;
+  color: #333333;
+  display: block;
+  font-family: Arial;
+  font-size: 12px;
+  height: 36px;  
+  padding-left: 5px;
+  padding-top: 10px;
+  vertical-align: middle;
+  min-width: 100px;
+}
+.form-item .description {
+  margin-top: 10px;
+  margin-left: 200px;
+}
+.form-item .description p {
+  font-size: 12px;
+}
+.form-actions {
+  width: 100%;
+  float: left;
+}
+#webform-component-end-date,
+#webform-component-start-date {
+  width: 100%;
+  float: left;
+}
+#webform-component-end-date .webform-container-inline .form-item,
+#webform-component-start-date .webform-container-inline .form-item {
+  float: left;
+}
+.webform-container-inline div.form-item {
+  float: left;
+  margin-right: 15px;
+}
+/* ------------ Employment Info Form Specific CSS ------------ */
+#webform-client-form-4 #edit-submitted-letters-of-recommendation-info-date-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Government ID Form Specific CSS ------------ */
+#webform-client-form-8 #edit-submitted-expiration-date-wrapper,
+#webform-client-form-8 #edit-submitted-date-issued-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Financial Form Specific CSS ------------ */
+#webform-client-form-3 #edit-submitted-loans-info-date-loan-wrapper,
+#webform-client-form-3 #edit-submitted-credit-score-info-date-credit-wrapper,
+#webform-client-form-3 #edit-submitted-credit---debit-cards-info-expiration-code-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Medical History Form Specific CSS ------------ */
+#webform-client-form-5 #edit-submitted-implants-info-type-wrapper,
+#webform-client-form-5 #edit-submitted-implants-info-date-implants-wrapper,
+#webform-client-form-5 #edit-submitted-surgeries-info-date-surgeries-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Product and Warranties Form Specific CSS ------------ */
+#webform-client-form-11 #edit-submitted-date-of-purchase-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Personal Data Form Specific CSS ------------ */
+#webform-client-form-2 #edit-submitted-dob-wrapper {
+  width: 100%;
+  float: left;
+}
+/* ------------ Complete Data Group Share Form Specific CSS ------------ */
+#custom-shared-datagroups-complete-form #edit-download-date-wrapper {
+  width: 100%;
+  float: left;
+}
+#custom-shared-datagroups-complete-form .container-inline div {
+  float: left;
+}
+#custom-shared-datagroups-complete-form #edit-shares {
+  float: left;
+  clear: both;
+}
+/* ------------ Contact Us Specific CSS ------------ */
+
+#contact-mail-page #edit-copy-wrapper {
+  width: 100%;
+  float: left;
+}
+
+/* ------------ Profile info page Specific CSS ------------ */
+
+#user-profile-form fieldset {
+  display: none;
+}
+
+/* checkout Page of membership Plan */
+.sticky-table
+{
+  width:100%;
+}
+#ms-checkout-form label
+{
+  width: 100% !important;
+}
+#ms-checkout-form .form-item span
+{
+  padding-left: 2.5em !important;
+}
+table.ms_order_items
+{
+  border-color:#B0E0EF;
+}
+.ms_order_items .tableHeader-processed tr
+{
+  background-color: #E2F8FF !important; border-color: #B0E0EF !important;
+}
+.ms_order_items th, .ms_order_table th
+{
+  border-top:none; border-bottom:none;
+}
+.ms_order_items thead th
+{
+  border-bottom: 3px solid #B0E0EF;
+}
+.ms_order_items tr.ms_total th
+{
+  background-color: #E2F8FF;
+}
+/* checkout Page of membership Plan */
+
+/* ------------ Table listing of Data Groups ------------ */
+.nav3_button {
+  margin: 10px 0;
+  width: 100%;
+  float: left;
+}
+.nav3_button input {
+  float: right;
+}
+#add_ins {
+  background: url("images/buttons.png") repeat-x;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  font-size: 16px;
+  height: 35px;
+  padding: 0 10px;
+  width: auto;
+}
+#add_ins:hover {
+  background: url("images/buttons-hover.png") repeat-x;
+}
+.data-table {
+  float: left;
+  width: 100%;
+}
+table {
+  width: 100%;
+  border: 1px solid #999999;  
+}
+table thead tr {
+  background: url("images/tb_head_bg.png") repeat-x;
+  height: 35px;
+  width: auto
+}
+table thead tr th {
+  border-bottom: none;
+  padding-right: 1em;
+  text-align: left;
+  padding-left: 1em;
+}
+table tbody tr {
+  height: 40px;
+  background-color: #FFFFFF;
+}
+table tbody tr.odd,
+table tbody tr.even {
+  border-bottom: 1px solid #CCCCCC;
+}
+table tbody tr.odd {
+  background-color: #F5FBFF;
+}
+table tbody tr.even {
+  background-color: #FFFFFF;
+}
+table tbody tr td {
+  padding-left: 1em;
+}
+table tbody tr td a {
+  color: #7F7F7F;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* ------------ CSS for Data Group sharing ------------ */
+.user-share-heading {
+  width: 100%;
+  float: left;
+  margin: 10px 0;
+}
+.searched-users {
+  width: 100%;
+  float: left;
+  margin: 10px 0;
+}
+.users_div {
+  width: 170px;
+  float: left;
+  height: auto;
+  margin-bottom: 15px;
+}
+.users_item {
+  width: 145px;
+  float: left;
+  border: 1px solid #bfbfbf;
+  border-radius: 5px;
+}
+.users_item .users_wrapper {
+  width: 100%;
+  margin: 0 auto;
+}
+.users_item .users_wrapper .users_img {  
+  height: 100px;
+  margin: 10px auto;
+  width: 100px;  
+}
+.users_item .users_title {
+  width: 100%;
+  float: left;
+  background-color: #E9EEF5;
+  height: 32px;
+  border-radius: 0 0 5px 5px;
+}
+.users_item .users_title p {
+  text-align: center;
+  font-weight: bold;
+  color: #1A6195;
+  margin-top: 6px;
+}
+.users_item .users_title p a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #1A6195;
+}
+.users_shadow {
+  background: url("images/shadow_myaccount.png") no-repeat center top;
+  float: left;
+  height: 15px;
+  width: 147px;
+}
+
+/* Plan Css on Registration Page Starts */
+fieldset#ms_membership_fieldset label{
+  width: 100% !important;
+}
+#md1{padding-left: 10px;}
+.form-checkboxes, .form-radios{float: left;}
+.form-item .description{width:100%; float: left;}
+/* Plan Css on Registration Page Ends */
+
+/* ------------ My Contact Specific CSS ------------ */
+
+#contacts {
+  width: 100%;
+  float: left;
+  padding: 20px 0;
+}
+
+/* ------------ Shared Data Detail Specific CSS ------------ */
+
+.data-boxes {
+  float: left;
+  width: 100%;
+}
+.data-boxes .data-instances {
+  float: left;
+  width: 255px;
+  border: 1px solid #B7B7B7;
+  margin-right: 50px;
+}
+.data-boxes .data-instances p {
+  text-align: center;
+}
+.data-boxes .data-instances p a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #1A6195;
+}
+.data-boxes .data-instances .ins-title {
+  width: 100%;
+  margin: 10px 0;
+}
+.data-boxes .data-instances .ins-detail {
+  width: 100%;
+  margin: 10px 0;
+}

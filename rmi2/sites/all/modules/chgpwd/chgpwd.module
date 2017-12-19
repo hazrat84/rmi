@@ -1,0 +1,121 @@
+<?php
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function chgpwd_menu() {
+
+  $items['user/%user_category/edit/chgpwd'] = array(
+    'title' => 'Change password',
+    'page callback' => 'chgpwd_chgpwd_page',
+    'page arguments' => array(1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'file' => 'user.pages.inc',
+    'file path' => drupal_get_path('module' , 'user') . '/',
+    'load arguments' => array('%map', '%index'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+  
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function chgpwd_form_user_profile_form_alter(&$form, $form_state) {
+
+  $elements = array(
+    'chgpwd'	=> array('_category', '_account', 'submit', 'form_build_id', 'form_token', 'form_id', 'pass_current'),
+    'account'	=> array('pass_current'),
+  );
+
+  // lets others alter the exclude elements
+  drupal_alter('chgpwd_element_excludes', $elements);
+
+  // we cannot use _category to make it confirm this is account tab 
+  // since change password form is itself in account category
+  // if ($form['_category']['#value'] == 'account') {
+
+  
+  if (is_null(arg(3)) || arg(3) == 'account'){
+    // to hide from default user edit
+    $form['account']['pass']['#access'] = false;
+    foreach(element_children($form) as $form_element) {
+      if (in_array($form_element, $elements['account']) && is_array($form[$form_element])) {
+	// just hide it
+	$form[$form_element]['#access'] = FALSE;
+      }
+	    
+    }
+
+  } else if (arg(3) == 'chgpwd'){
+    // hide all others except pass field.
+
+    $form['account']['#title'] = t('Change password');
+
+    foreach(element_children($form) as $form_element) {
+      if ($form_element == 'account'){
+	foreach($form['account'] as $account_key => $account_value) {
+	  if ($account_key != 'pass' && is_array($form['account'][$account_key])) {
+	  $form['account'][$account_key]['#access'] = FALSE;
+	  }
+	}
+      } else {
+	if (!in_array($form_element, $elements['chgpwd']) && is_array($form[$form_element])) {
+	  // just hide it
+	  $form[$form_element]['#access'] = FALSE;
+	}
+	$form['account']['pass']['#required'] = TRUE;
+	$form['submit']['#value'] = t('Change password');
+      }
+    }
+    
+  }
+
+}
+
+
+function chgpwd_chgpwd_page($account, $category = 'account') {
+  drupal_set_title(t('Change password'));
+  return drupal_get_form('user_profile_form', $account, $category);	
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function chgpwd_user($type, &$edit, &$account, $category = NULL) {
+
+  if ($type == 'categories') {
+    return array(array('name' => 'chgpwd', 'title' => t('Change password'), 'weight' => 1));
+  }
+  
+  /*if ($type == 'update' && arg(3) == 'chgpwd') {
+    drupal_set_message(t('Password has been changed successfully!'));
+  }*/
+  
+}
+
+
+/**
+ * Implementation of hook_form_FORM_ID_alter()
+ */
+function chgpwd_form_user_pass_reset_alter(&$form, &$form_state) {
+	
+  // see http://drupal.org/node/1231304#comment-4880156
+  // $uid = module_exists('me')? 'me':$form['#parameters'][2];
+  $uid = $form['#parameters'][2];
+  
+  $timestamp = $form['#parameters'][3];
+  $hashed_pass = $form['#parameters'][4];
+
+  $url = url("user/reset/$uid/$timestamp/$hashed_pass/login", array(
+    'query' => array(
+      'destination' => "user/$uid/edit/chgpwd"
+    )
+  ));
+  
+  $form['#action'] = $url;
+
+}

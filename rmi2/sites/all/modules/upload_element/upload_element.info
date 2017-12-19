@@ -1,0 +1,10 @@
+name = Upload elements
+description = Two FAPI elements to handle file uploads, an image and a file upload element. 
+package = Other
+core = 6.x
+; Information added by drupal.org packaging script on 2011-02-25
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "upload_element"
+datestamp = "1298620557"
+

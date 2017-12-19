@@ -1,0 +1,1080 @@
+<?php
+
+/**
+ * This module provides a simple way to manage custom restaurants.
+ *
+ * @author Shabir Ahmad
+ */
+
+/**
+ * Implements hook_init().
+ */
+function restaurant_management_init() {
+
+}
+
+
+/**
+ * Implements hook_help().
+ */
+function restaurant_management_help($section = 'admin/help#custom', $arg = NULL) {
+    $output = '';
+    switch ($section) {
+        case 'admin/content/custom':
+            $output = '<p>' . t('This page lists all of the content on the site that may have a webform attached to it.') . '</p>';
+            break;
+    }
+
+    return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function restaurant_management_perm() {
+    return array('access local restaurants');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function restaurant_management_menu() {
+    $items = array();
+    
+    $items['admin/settings/restaurant_management'] = array(
+        'title'            => 'Restaurant settings',
+        'description'      => 'Configure node ids used in the code.',
+        'access arguments' => array('administer site configuration'),
+        'page callback'    => 'drupal_get_form',
+        'page arguments'   => array('restaurant_management_admin_settings'),
+        'type'             => MENU_NORMAL_ITEM,
+        'file'             => 'restaurant_management.admin.inc',
+    );
+    $items['user/view/%/business'] = array(
+        'title' => t('Manage Local Business'),
+        'description' => t('View All the restaurents added by busieness.'),
+        'page callback' => 'local_restaurants',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+
+    $items['user/view/global/%/business'] = array(
+        'title' => t('Restaurants'),
+        'description' => t('View All the restaurents that is globally shared.'),
+        'page callback' => 'global_restaurants',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+   
+    $items['node/%/restaurant/submission/%/edit'] = array(
+        'title' => t('Edit'),
+        'page callback' => 'restaurant_edit_page',
+        'page arguments' => array(1, 4),
+        'access arguments' => array("access all webform results"),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['restaurant/%/instance/%/users'] = array(
+        'title' => t('Registered Users'),
+        'page callback' => 'restaurant_registered_users',
+        'page arguments' => array(1, 3),
+        'access arguments' => array("access all webform results"),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    $items['restaurant/%/instance/%/exportusers'] = array(
+        'title' => t('Export Users'),
+        'page callback' => 'restaurant_export_users',
+        'page arguments' => array(1, 3),
+        'access arguments' => array("access all webform results"),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['node/%/restaurant/%/delete'] = array(
+        'title' => 'Delete',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('restaurant_delete_form'),
+        'access arguments' => array("access all webform results"),
+        'type' => MENU_NORMAL_ITEM,
+  );
+     $items['restaurant/%/register'] = array(
+        'title' => t('Register'),
+        'page callback' => 'restaurant_registration',
+        'page arguments' => array(1),
+        'access arguments' => array("access all webform results"),
+        'type' => MENU_NORMAL_ITEM,
+  );
+
+   // Register for a business
+    $items['business/%/register/%'] = array(
+        'description' => t('Register'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('restaurant_management_register_business_form'),
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+
+    // Recall Implants
+    $items['implant/%/recall'] = array(
+        'description' => t('Recall'),
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('restaurant_management_implant_recall_form'),
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+     // Register for a business
+    $items['view/business/%/registered'] = array(
+        'title' => t('View Registered datagroups'),
+        'description' => t('Registered Implants'),
+        'page callback' => 'registered_implants',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+
+    $items['view/business/%/instance/%/qrcode'] = array(
+        'title' => t('View QR codes'),
+        'description' => t('Show QR codes'),
+        'page callback' => 'view_qrcodes',
+        'type' => MENU_NORMAL_ITEM,
+        'access arguments' => array("access all webform results"),
+    );
+
+
+
+  
+    return $items;
+}
+
+/**
+ * Menu callback for local restaurants.
+ */
+function local_restaurants() {
+    global $base_path;
+    global $base_url;
+    global $user;
+    //Files necessary for popup
+    
+
+    $user_id = $user->uid;
+    variable_set('rest_id', 33);
+    $rest_id = arg(2);
+    $dg_title = db_result(db_query("SELECT title FROM {node}
+                      WHERE node.nid = %d", $rest_id));
+
+    
+    $output = '';
+    $output .= '<div class="nav3">
+                    <ul>
+                        <li><span><a href="' . $base_url . '/node/' . $rest_id . '/add">Add '.$dg_title.'</a></span></li>
+                    </ul>
+                </div>
+                <div class="clear"></div>
+                <div class="data-table">';
+    
+    switch($rest_id){
+        case variable_get('rest_id', 33):
+            $header = array('Restaurants', 'Actions');
+            break;
+        case variable_get('implant_id', 33):
+            $header = array('Implants Title', 'Actions');
+            break;
+        case variable_get('product_id', 41):
+            $header = array('Product Title', 'SKU', 'Waranty period','Actions');
+            break;
+    }
+    
+    
+    module_load_include('inc', 'webform', 'includes/webform.submissions');
+    $filters= array('nid' => $rest_id, 'uid' => $user_id );
+    $result  = webform_get_submissions($filters);
+    
+    //Get Field Name of the first component of restauranst (Name,Title)
+    $rest_title = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d", $rest_id));
+    // Get Submission Id
+    $rs = db_query("SELECT sid FROM {datagroup_submissions} s
+                    INNER JOIN {users} u ON u.uid = s.uid
+                    INNER JOIN {node} n ON n.nid = s.nid
+                    WHERE s.uid = %d AND s.nid = %d", $user_id, $rest_id);
+    
+    if (db_affected_rows ()) {
+        while ($row = db_fetch_array($rs)) {
+            $title = db_result(
+                        db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s' ",
+                          $row['sid'], $rest_id , $rest_title )
+                        );
+            //exit;
+            $edit_link = 'node/' . $rest_id . '/restaurant/submission/' . $row["sid"] . '/edit/' . $count;
+              $title = l($title, $edit_link, array('query' => 'destination=user/view/'.$rest_id.'/business'));
+              
+            $edit_data = l("<img src='" . $base_path . path_to_theme() . "/images/icon_edit.jpg'   width='20' height='19' title='Edit' />", 'node/' . $rest_id . '/restaurant/submission/' . $row["sid"] . '/edit/', $options = array('html' => TRUE, 'query' => 'destination=user/view/'.$rest_id.'/business')).'&nbsp';
+
+            $register_users = l("<img src='" . $base_path . path_to_theme() . "/images/search_user.png'   width='20' height='19' title='Register Users' />", 'restaurant/'.$rest_id.'/instance/'.$row["sid"].'/users/', $options = array('html' => TRUE)).'&nbsp';
+
+            $delete_data =  l("<img src='" . $base_path . path_to_theme() . "/images/icon_delete.jpg' title='Delete' width='20' height='19'/>", 'node/' . $rest_id . '/restaurant/' . $row["sid"] . '/delete/'.$count, $options = array('html' => TRUE, 'query' => 'destination=user/view/'.$rest_id.'/business'));
+            $action_link = $edit_data.$register_users.$delete_data;
+
+            if($rest_id == variable_get('implant_id', 34)) {
+                $print_data = l("<img src='" . $base_path . path_to_theme() . "/images/print_64.png'   width='20' height='19' title='Print' />", '/view/business/' . $rest_id . '/instance/' . $row["sid"] . '/qrcode/', $options = array('html' => TRUE,)).'&nbsp';
+
+                $recall_data = l("<img src='" . $base_path . path_to_theme() . "/images/recall.png'   width='20' height='19' title='Recall Implant' />", 'implant/'.$row["sid"].'/recall', $options = array('html' => TRUE)).'&nbsp';
+                $action_link .= $print_data.$recall_data;
+
+            }
+             if($rest_id == variable_get('product_id', 41)) {
+                $print_data = l("<img src='" . $base_path . path_to_theme() . "/images/print_64.png'   width='20' height='19' title='Print QR code' />", '/view/business/' . $rest_id . '/instance/' . $row["sid"] . '/qrcode/', $options = array('html' => TRUE, )).'&nbsp';
+                $action_link .= $print_data;
+            }
+
+             if($rest_id == variable_get('product_id', 41)) {
+                $sku = db_result(
+                        db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.cid = %d",
+                          $row['sid'], $rest_id , 2 )
+                        );
+                $warranty = db_result(
+                        db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.cid = %d",
+                          $row['sid'], $rest_id , 5 )
+                        );
+                 $rows[] = array(
+                          // Restaurant Name
+                          array('data' => $title, 
+                            'width' => '30%', 
+                            'class' => 'anchored-data'),
+                          array('data' => $sku,
+                            'width' => '20%',),
+                          array('data' => $warranty,
+                            'width' => '25%',),
+                          // Action Column
+                          array('data' => $action_link),
+                    );
+             } else {
+
+                    // Populated table rows
+                    $rows[] = array(
+                                  // Restaurant Name
+                                  array('data' => $title, 
+                                    'width' => '75%', 
+                                    'class' => 'anchored-data'),
+                                  // Action Column
+                                  array('data' => $action_link),
+                    );
+             }
+        }
+    } else {
+        $rows[]= array(array('data' => t("There are no submissions for this data group"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;' );
+    }
+    $output .= theme('table', $header, $rows);
+    return($output);
+
+}
+/**
+ * Menu callback for global restaurants.
+ */
+function global_restaurants() {
+  drupal_add_css(drupal_get_path('module', 'restaurant_management') .'/popup.css');
+    global $base_path;
+    global $base_url;
+    global $user;
+    $user_id = $user->uid;
+    $rest_id = arg(3);
+
+    // Add files needed for sharethis and popup
+    drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/popup.js');
+    drupal_add_css(drupal_get_path('module', 'restaurant_management') .'/popup.css');
+    drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/popup_source.js');
+    drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/js/sharethis.js');
+
+    $dg_title = db_result(db_query("SELECT title FROM {node}
+                      WHERE node.nid = %d", $rest_id));
+    $output = '';
+    $output .= '<div class="data-table">';
+    $header = array('Restaurants', 'Location','Actions');
+    switch($rest_id){
+        case variable_get('rest_id', 33):
+            
+            break;
+        case variable_get('implant_id', 34):
+            $header = array('Implants Title','Purchased Date', 'Location', 'Actions');
+            break;
+    }
+    
+    module_load_include('inc', 'webform', 'includes/webform.submissions');
+    $filters= array('nid' => $rest_id, 'uid' => $user_id );
+    
+    $result  = webform_get_submissions($filters);
+    
+    //Get Field Name of the first component of restauranst (Name,Title)
+    $rest_title = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d and wc.cid = %d", $rest_id,1));
+    $rest_location = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d and wc.cid = %d", $rest_id,3));
+    
+    // Get Submission Id
+    $rs = db_query("SELECT sid FROM {datagroup_submissions} s
+                    INNER JOIN {users} u ON u.uid = s.uid
+                    INNER JOIN {node} n ON n.nid = s.nid
+                    WHERE s.nid = %d", $rest_id);
+    
+    if (db_affected_rows ()) {
+        while ($row = db_fetch_array($rs)) {
+            
+            $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s' ",
+                          $row['sid'], $rest_id , $rest_title  ));
+
+             $location = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s' ",
+                          $row['sid'], $rest_id , $rest_location  ));
+
+            // For Medical Implants the user can unregister
+            if($rest_id == variable_get('implant_id', 34)){
+                $action_link =  l("<img src='" . $base_path . path_to_theme() . "/images/icon_delete.jpg' title='Delete' />", 'node/' . $rest_id . '/restaurant/' . $row["sid"] . '/delete/'.$count, $options = array('html' => TRUE, 'query' => 'destination=user/view/'.$rest_id.'/business'));
+            }
+            else{
+
+                $list_length = db_result(db_query('SELECT count(registration_id) FROM {registration} where nid = %d and sid = %d and registered_uid = %d', $rest_id,$row['sid'],$user->uid));
+                
+                if($list_length > 0) {
+                    //$action_link = '<a href="'.$base_url.'/restaurant/'.$row['sid'].'/register" class="share_link">'.t('Share').'</a>';
+                  $action_link = '<span class="st_facebook" displayText=""></span>
+                            <span class="st_twitter" displayText=""></span>'.
+                            l("<img src='" . $base_path . path_to_theme() . "/images/share_contact.png'   width='20' height='19' title='Share with RMI contacts' />", 'share/data-groups/'.$row["sid"], $options = array('html' => TRUE)).'&nbsp';
+                } 
+                else {
+                    $action_link = '<a href="'.$base_url.'/restaurant/'.$row['sid'].'/register" class="register_link">'.t('Register').'</a>
+
+                        <div id="hidden_'.$row['sid'].'" style="display:none">
+                            <span class="st_facebook" displayText=""></span>
+                            <span class="st_twitter" displayText=""></span>'.
+
+                            l("<img src='" . $base_path . path_to_theme() . "/images/share_contact.png'   width='20' height='19' title='Share with RMI contacts' />", 'share/data-groups/'.$row["sid"], $options = array('html' => TRUE)).'&nbsp'.'
+                        </div>
+                        
+                    ';
+                }
+           }
+            //find if already registered or not
+            
+            // Populated table rows
+            $rows[] = array(
+                          // Restaurant Name
+                          array('data' => $title, 
+                            'width' => '40%', 
+                            ),
+                          // Restaurant Location
+                          array('data' => $location, 
+                            'width' => '35%', 
+                            ),
+                          // Action Column
+                          
+                          array('data' => $action_link),
+            );
+        }
+    } else {
+        $rows[]= array(array('data' => t("There are no Globaly shared restaurants"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;' );
+    }
+    $output .= theme('table', $header, $rows);
+    return($output);
+
+}
+
+/**
+* Menu Call back for Restaurant edit page
+*/
+
+function restaurant_edit_page($nid, $sid) {
+    global $user;
+    global $base_url;
+    $node = node_load($nid);
+    // /$node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = " . $nid));
+    
+    // Add admin CSS.
+    drupal_add_css(drupal_get_path('module', 'webform') . '/css/webform-admin.css', 'module', 'all', FALSE);
+
+    //Get Field Name of the first component of restauranst (Name,Title)
+    $rest_title = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d", $nid));
+
+    // Set the correct page title.
+    $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                    INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                    WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s'", arg(4), arg(1), $rest_title ));
+    drupal_set_title($title);
+    
+    // Query the required submission data from custom table.
+    $query = 'SELECT s.* FROM datagroup_submissions s WHERE s.sid = %d AND s.nid = %d';
+    $result = db_query($query, $sid, $nid);
+    $row = db_fetch_object($result);
+    $submission->sid = $row->sid;
+    $submission->nid = $row->nid;
+    $submission->submitted = $row->submitted;
+    $submission->remote_addr = $row->remote_addr;
+    $submission->uid = $row->uid;
+    $submission->is_draft = $row->is_draft;
+    $submission->data = array();
+    // Convert the queried rows into submissions.
+    $rs = db_query('SELECT sd.cid, sd.data FROM datagroup_submitted_data sd WHERE sd.sid = %d AND sd.nid = %d', $sid, $nid);
+    while ($row1 = db_fetch_object($rs)) {
+        // CID may be NULL if this submission does not actually contain any data.
+        // Data population for the edit page
+        if ($row1->cid) {
+            $submission->data[$row1->cid]['value'][0] = $row1->data;
+        }
+    }
+
+    $output = "<div class='close_group'><a href='".$base_url."/".$_REQUEST['destination']."'><img alt='close' src='".base_path()."sites/all/themes/rmi/images/button_delete_blue.png' title='Close' /></a></div>";
+    $output .= drupal_get_form('webform_client_form_' . $node->nid, $node, $submission);
+    //$output .= view_data_subgroups_instance();
+    //echo $output; exit;
+    // Determine the mode in which we're displaying this submission.
+    $mode = 'form';
+    // Add navigation for administrators.
+    $navigation = NULL;
+    $information = NULL;
+    // Actions may be shown to all users.
+    //print_r($node); exit;
+    $actions = theme('links', module_invoke_all('webform_submission_actions', $node, $submission), array('class' => 'links inline webform-submission-actions'));
+    // Disable the page cache for anonymous users viewing or editing submissions.
+    if (!$user->uid) {
+        webform_disable_page_cache();
+    }
+
+    return theme('webform_submission_page', $node, $submission, $output, $navigation, $information, $actions, $mode);
+}
+
+/**
+* Menu Call back for Registered User page
+*/
+
+function restaurant_registered_users($nid, $sid) {
+    global $user;
+    global $base_url;
+    //$node = node_load($nid);
+    drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/popup.js');
+    drupal_add_css(drupal_get_path('module', 'restaurant_management') .'/popup.css');
+    drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/export_source.js');
+    
+    $output = '';
+    $output .= '<div class="nav3">
+                    <ul>
+                        <li><span><a href="'.$base_url.'/restaurant/'.$nid.'/instance/'.$sid.'/exportusers/" class="export_link">Export as csv</a></span></li>
+                    </ul>
+                </div>
+                <div class="clear"></div>
+                <div class="data-table">';
+
+    // Find registered user of this restaurant
+    
+    
+    
+    if($nid == variable_get('rest_id', 33)){
+        $header = array('Full Name', 'Email','Registered On','Location');
+        $users = db_query("SELECT reg.registration_date,users.name, users.mail , dsdata.data, wc.form_key               FROM `registration` reg
+                              INNER JOIN datagroup_submitted_data dsdata on reg.sid = dsdata.sid
+                              INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                              INNER JOIN datagroup_submissions ds on ds.sid = dsdata.sid
+                              INNER JOIN users on users.uid = reg.registered_uid
+                              WHERE dsdata.sid = %d AND wc.nid = %d AND wc.form_key = 'location'", $sid, $nid);
+         $output .= '<div class="data-table">';
+        if (db_affected_rows ()) { 
+            while($row = db_fetch_array($users)){
+                $rows[] = array(
+                        array('data' => $row['name'],'width' => '25%'),
+                        array('data' => $row['mail'],'width' => '30%'),
+                        array('data' => date('d-m-Y',$row['registration_date']),'width' => '20%'),
+                        array('data' => $row['data'],'width' => '25%'),
+
+                );
+
+            }
+       
+        } else {
+            $rows[]= array(array('data' => t("There are no Regestered Users for this restaurant"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;','&nbsp;','&nbsp;' );
+        }
+    } 
+    else {
+
+        if($nid == variable_get('implant_id', 34)) {
+            $header = array('Full Name', 'Email','Phone','Facility Name','Start of use date');
+            $no_data = t('There are no Regestered Users for this Medical Implant');
+        } else {
+            $header = array('Full Name', 'Email','Phone','Opted-In Status');
+            $no_data = t('There are no Regestered Users for this Product');
+        }
+        
+        $users = db_query("SELECT * from registration where nid = %d and sid = %d",$nid,$sid);
+         $output .= '<div class="data-table">';
+        if (db_affected_rows ()) { 
+            while($row = db_fetch_array($users)){
+                $row_details = unserialize($row['details']);
+                //echo $row['details'];
+                //print_r($row_details); exit;
+                if($nid == variable_get('implant_id', 34)){
+
+                    $rows[] = array(
+                            array('data' => $row_details['name'],'width' => '20%'),
+                            array('data' => $row_details['email'],'width' => '25%'),
+                            array('data' => $row_details['phone'],'width' => '20%'),
+                            array('data' => $row_details['facility_name'],'width' => '15%%'),
+                            array('data' => date('d-m-Y',$row_details['date_use'])),
+
+                    );
+                } else {
+                    ($row_details['recall'] == 1)? ($status = t('Opted-In')):($status = t('Opted-Out'));
+                    $rows[] = array(
+                            array('data' => $row_details['name'],'width' => '25%'),
+                            array('data' => $row_details['email'],'width' => '35%'),
+                            array('data' => $row_details['phone'],'width' => '20%'),
+                            array('data' => $status),
+
+                    );
+                }
+
+            }
+    }
+    else {
+            $rows[]= array(array('data' => $no_data, 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;','&nbsp;', '&nbsp;' );
+        }
+    }
+
+   
+    $output .= theme('table', $header, $rows);
+    return $output;
+}
+
+/**
+* Menu Call back for Export User page
+*/
+
+function restaurant_export_users($nid, $sid) {
+    global $user;
+    global $base_url;
+    //$node = node_load($nid);
+    
+    // Set content header to csv
+    $filename= 'export'.$nid.'_'.$sid.'.csv';
+    drupal_set_header('Content-Type: text/csv');
+    drupal_set_header('Content-Disposition: attachment; filename=' . $filename);
+    
+    $output = '';
+   
+
+    // Find registered user of this restaurant
+    if($nid == variable_get('rest_id', 33)) {
+
+        $header = array('Full Name', 'Email','Registered On','Location');
+        $users = db_query("SELECT reg.registration_date,users.name, users.mail , dsdata.data, wc.form_key               FROM `registration` reg
+                              INNER JOIN datagroup_submitted_data dsdata on reg.sid = dsdata.sid
+                              INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                              INNER JOIN datagroup_submissions ds on ds.sid = dsdata.sid
+                              INNER JOIN users on users.uid = reg.registered_uid
+                              WHERE dsdata.sid = %d AND wc.nid = %d AND wc.form_key = 'location'", $sid, $nid);
+        if (db_affected_rows ()) { 
+            while($row = db_fetch_array($users)){
+                
+                $rows[] = array( $row['name'] , $row['mail'], date('d-m-Y',$row['registration_date']),$row['data']);
+                    
+
+            }
+        } else {
+            $rows[]= array(array('data' => t("There are no Regestered User for this restaurant"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;' );
+        }
+    
+    } else {
+
+        $header = array('Full Name', 'Email','Phone','Facility Name','Start of use date');
+        $users = db_query("SELECT * from registration where nid = %d and sid = %d",$nid,$sid);
+        if (db_affected_rows ()) { 
+            while($row = db_fetch_array($users)){
+                $row_details = unserialize($row['details']);
+                $rows[] = array( $row_details['name'] , $row_details['email'], $row_details['phone'], $row_details['facility_name'], date('d-m-Y',$row_details['date_use']));
+                    
+
+            }
+        } else {
+            $rows[]= array(array('data' => t("There are no Regestered User for this restaurant"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;' );
+        }
+
+    }
+
+
+    //download as csv
+    foreach($header as $key => $value) {
+           $keys[] =$value;         
+    }
+
+    if($keys) {
+        print implode(',', $keys) ."\r\n";
+    } 
+
+    unset($keys);
+    foreach($rows as $key => $value) {
+       $values[] =$value; 
+    }
+    foreach($values as $item){
+       print implode(',', $item) ."\r\n";
+    } 
+
+    unset($values);
+    exit;
+    //$output .= theme('table', $header, $rows);
+    //return $output;
+}
+
+/**
+* Menu Call back for Delete restaurant
+*/
+
+function restaurant_delete_form() {
+    global $user;
+    $node = node_load(arg(1));
+    $rest_title = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d", arg(1)));
+
+    // Set the correct page title.
+    $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                    INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                    WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s'", arg(3), arg(1), $rest_title ));
+    
+    drupal_set_title($title);
+    $query = 'SELECT s.* FROM datagroup_submissions s WHERE s.sid = %d AND s.nid = %d';
+    $result = db_query($query, arg(3), arg(1));
+    $row = db_fetch_object($result);
+    $submission->sid = $row->sid;
+    $submission->nid = $row->nid;
+    $submission->submitted = $row->submitted;
+    $submission->remote_addr = $row->remote_addr;
+    $submission->uid = $row->uid;
+    $submission->is_draft = $row->is_draft;
+    $form['#tree'] = TRUE;
+    $form['details']['nid'] = array(
+        '#type' => 'value',
+        '#value' => $node->nid,
+    );
+    $form['details']['sid'] = array(
+        '#type' => 'value',
+        '#value' => $submission->sid,
+    );
+
+    $question = t('Are you sure you want to delete this Restaurant?');
+
+    if (isset($_GET['destination'])) {
+        $destination = $_GET['destination'];
+    } else {
+        $destination = 'view/data/' . $node->nid . '/'.$user->uid;
+    }
+
+    return confirm_form($form, NULL, $destination, $question, t('Delete'), t('Cancel'));
+}
+
+function restaurant_delete_form_submit($form, &$form_state) {
+    //print_r($form_state); exit;
+    global $user;
+    $nid = $form_state['values']['details']['nid'];
+    $sid = $form_state['values']['details']['sid'];
+    $rs_file = db_query("SELECT wc.`cid`, wc.`name`, wc.`type`, dsd.data  FROM `datagroup_submitted_data` dsd
+                        INNER JOIN `webform_component` wc ON wc.cid= dsd.cid
+                        WHERE dsd.uid = %d  AND wc.nid = %d and dsd.sid = %d AND wc.type = 'file'  ORDER BY  `wc`.`cid` ASC ", $user->uid, $nid, $sid);
+    if(db_affected_rows ()) {
+        while($row_file = db_fetch_object($rs_file)) {
+            if (!empty($row_file->data)) {
+                $file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $row_file->data));
+                unlink($file_path);
+                db_query('DELETE FROM {files} WHERE fid = %d', $row_file->data);
+            }
+        }
+    }
+    db_query('DELETE FROM {datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d ', $nid, $sid, $user->uid);
+    db_query('DELETE FROM {datagroup_submitted_data} WHERE nid = %d AND sid = %d AND uid = %d ', $nid, $sid, $user->uid);
+    $rs = db_query("SELECT `ssid` FROM {sub_datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d", $nid, $sid, $user->uid);
+    while ($row = db_fetch_object($rs)) {
+        $rs_sub_file  = db_query("SELECT wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d AND wc.type = 'file'  ORDER BY  `wc`.`cid` ASC", $row->ssid, $nid );
+        if(db_affected_rows ()) {
+            while ($row_file_sub = db_fetch_object($rs_sub_file)) {
+                if (!empty($row_file_sub->data)) {
+                    $sub_file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $row_file_sub->data));
+                    unlink($sub_file_path);
+                    db_query('DELETE FROM {files} WHERE fid = %d', $row_file_sub->data);
+                }
+            }
+        }
+        db_query('DELETE FROM {sub_datagroup_submitted_data} WHERE ssid = %d', $row->ssid);
+    }
+    db_query('DELETE FROM {sub_datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d', $nid, $sid, $user->uid);
+    db_query('DELETE FROM {webform_submissions} WHERE nid = %d AND sid = %d AND uid = %d', $nid, $sid, $user->uid);
+    db_query('DELETE FROM {webform_submitted_data} WHERE nid = %d AND sid = %d', $nid, $sid);
+
+    $form_state['redirect'] = 'view/data/'.$nid.'/'.$sid ;
+}
+
+/**
+* Menu call back for restaurant registration
+*/
+
+function restaurant_registration($sid) {
+    global $user;
+    $rest_id = variable_get('rest_id', 33);
+    $owner_uid = db_result(db_query('SELECT uid FROM {`datagroup_submissions`} where sid = %d',$sid));
+    $details = array();
+    $sql = "INSERT INTO {registration} (nid, sid , owner_uid , registered_uid,registration_date,details) VALUES  (%d, %d , %d, %d,%d,'%s') ";
+    $result = db_query($sql, $rest_id, $sid,$owner_uid,$user->uid,time(),$details);
+    if(db_affected_rows()){
+        echo 'hidden_'.$sid;
+        exit();
+    }
+    else{
+        echo 0;
+        exit;
+    }
+}
+
+
+/**
+ * Implements hook_form().
+ */
+
+function restaurant_management_register_business_form() {
+        
+        //add files necessary to datepicker
+        global $user;
+        $email = $user->mail; 
+        if(arg(0) == 'business' and arg(2) == 'register'){
+            drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/datepicker_source.js');
+            drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/js/jquery.js');
+            drupal_add_js(drupal_get_path('module', 'restaurant_management') .'/js/jquery-ui.js');
+            drupal_add_css(drupal_get_path('module', 'restaurant_management') .'/css/jquery-ui.css');
+        }
+
+        $webform_name = db_result(db_query("SELECT title FROM {node} nd
+                      WHERE nd.nid = %d ", arg(1) ));
+        $business_title = db_result(db_query("SELECT name FROM {webform_component} wc
+                      WHERE wc.nid = %d and wc.cid = %d", arg(1) ,1));
+        $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s' ",
+                          arg(3), arg(1) , $business_title  ));
+
+        // make some field specific
+        if(arg(1) == variable_get('implant_id', 34)) {
+            $recall_title = t('Recall facility');
+            $date = t('Date of Use');
+            $location = t('Location');
+            $title_business = t('Implant title');
+        } else if(arg(1) == variable_get('product_id', 41)){
+            $recall_title = t('Receive product updates');
+            $date = t('Purchased date');
+            $location = t('Purchased Location');
+            $title_business = t('Product title');
+        }
+        
+        $form['register_business'] = array(
+          '#type' => 'fieldset', 
+          '#title' => t('Register '.$webform_name), 
+          '#weight' => 5, 
+          '#collapsible' => True, 
+          '#collapsed' => FALSE,
+         );
+
+        $form['register_business']['title'] = array(
+          '#type' => 'textfield',
+          '#default_value' => $title,
+          '#value' => $title,
+          '#title' => $title_business,
+          '#disabled' => true,
+        );
+
+        $form['register_business']['name'] = array(
+          '#type' => 'textfield',
+          '#default_value' => '',
+          '#title' => 'Name',
+        );
+
+        $form['register_business']['location'] = array(
+          '#type' => 'textfield',
+          '#default_value' => '',
+          '#title' => $location,
+          '#required' => TRUE,
+        );
+
+        $form['register_business']['email'] = array(
+          '#type' => 'textfield',
+          '#default_value' => $email,
+          '#title' => 'Email',
+          '#required' => TRUE,
+        );
+         $form['register_business']['phone'] = array(
+          '#type' => 'textfield',
+          '#default_value' => '',
+          '#title' => 'Phone',
+          '#required' => TRUE,
+        );
+         $form['register_business']['date_use'] = array(
+          '#type' => 'textfield',
+          '#default_value' => '',
+          '#title' => $date,
+          '#required' => TRUE,
+        );
+        if(arg(1) == variable_get('implant_id', 34)) {
+            $form['register_business']['facility_name'] = array(
+            '#type' => 'textfield',
+            '#default_value' => '',
+            '#title' => t('Medical Facility Name'),
+            '#required' => TRUE,
+            );    
+        } else {
+            $form['register_business']['purchased_price'] = array(
+            '#type' => 'textfield',
+            '#default_value' => '',
+            '#title' => t('Purchased price'),
+            '#required' => TRUE,
+            );    
+        }
+        
+
+        $form['register_business']['recall'] = array(
+          '#type' => 'checkbox',
+          '#default_value' => '',
+          '#title' => $recall_title,
+        );
+        $form['register_business']['agreement'] = array(
+          '#type' => 'textarea',
+          '#default_value' => t('hsadsa asda dasdsad'),
+          '#title' => '',
+          '#disabled' => TRUE,
+        );
+        $form['register_business']['license'] = array(
+          '#type' => 'checkbox',
+          '#default_value' => '',
+          '#title' => 'I agree to the license agreement',
+        );
+        $form['register_business']['nid'] = array(
+          '#type' => 'hidden',
+          '#value' => arg(1),
+        );
+        $form['register_business']['sid'] = array(
+          '#type' => 'hidden',
+          '#value' => arg(3),
+        );
+        $form['register_business']['submit'] = array(
+          '#type' => 'submit',
+          '#value' => 'Register'
+        );
+       
+  return $form; 
+}
+
+function restaurant_management_register_business_form_submit(&$form,$form_state) {
+    global $base_path;
+    global $base_url;
+    global $user;
+    
+    $values = $form_state['values'];
+   
+    $title = $values['title'];
+    $name = $values['name'];
+    $email = $values['email'];
+    $phone = $values['phone'];
+    $location = $values['location'];
+    $recall = $values['recall'];
+    $date_use = strtotime($values['date_use']);
+    $nid = $values['nid'];
+    $sid = $values['sid'];
+    if($nid == variable_get('implant_id', 34)) {
+        $specific_title = 'facility_name';
+        $speific_name = $values['facility_name'];
+    } else {
+        $specific_title = 'purchased_price';
+        $speific_name = $values['purchased_price'];
+    }
+    $details_array = array('title' => $title,'name' => $name,
+                            'email' => $email, 'phone' => $phone,
+                            'location'=>$location,
+                            'recall'=> $recall ,$specific_title => $speific_name,
+                            'date_use' => $date_use,);
+      
+    $owner_uid = db_result(db_query('SELECT uid FROM {`datagroup_submissions`} where sid = %d',$sid));
+
+    $sql = "INSERT into {registration} (nid,sid,owner_uid,registered_uid,registration_date,details)
+            VALUES (%d,%d,%d,%d,%d,'%s')";
+    $result = db_query($sql,$nid,$sid,$owner_uid,$user->uid,time(),serialize($details_array));
+    if(db_affected_rows()){
+        drupal_goto($base_url.'/view/business/'.$nid.'/registered');
+    } else{
+        print 'There is error in inserting the data';
+        die;
+    }
+    //print_r($details);
+}
+
+/**
+* Menu call back for Registered Implants
+*/
+
+function registered_implants() {
+    global $base_path;
+    global $base_url;
+    global $user;
+    $user_id = $user->uid;
+    $rest_id = arg(2);
+
+    module_load_include('inc', 'webform', 'includes/webform.submissions');
+    $filters= array('nid' => $rest_id, 'uid' => $user_id );
+    $result  = webform_get_submissions($filters);
+    
+    $dg_title = db_result(db_query("SELECT title FROM {node}
+                      WHERE node.nid = %d", $rest_id));
+    $output = '';
+    $output .= '<div class="data-table">';
+   
+   
+    if(arg(2) == variable_get('implant_id', 40)) {
+        $header = array('Implants Title','Purchased Date', 'Location', 'Actions');        
+    } else {
+       $header = array('Product Title','Purchased Date', 'Location', 'Expiration Date');
+    }
+    
+    $rs = db_query("SELECT * FROM {registration} reg
+                    WHERE reg.nid = %d and reg.registered_uid = %d", $rest_id,$user_id);
+    if (db_affected_rows ()) {
+        while ($row = db_fetch_array($rs)) {
+            // For Medical Implants the user can unregister
+            $details = unserialize($row['details']);
+            $title = $details['title'];
+            $location = $details['location'];
+            
+            $date_use = date('Y-m-d',$details['date_use']);
+            $action_link =  l("<img src='" . $base_path . path_to_theme() . "/images/icon_delete.jpg' title='Delete' />", 'node/' . $rest_id . '/restaurant/' . $row["sid"] . '/delete/'.$count, $options = array('html' => TRUE, 'query' => 'destination=user/view/'.$rest_id.'/business'));
+            
+            if(arg(2) == variable_get('product_id', 41)) {
+                $warranty = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.cid = %d ",
+                          $row['sid'], arg(2) , 5 ));
+               
+                $purchase_date = $details['date_use'];
+                $action_link = date('Y-m-d',strtotime("+".$warranty." months", $purchase_date));
+            }
+           
+            // Populated table rows
+            $rows[] = array(
+                          array('data' => $title, 
+                            'width' => '30%', 
+                            ),
+                          array('data' => $date_use, 
+                            'width' => '30%', 
+                            ),
+                          array('data' => $location, 
+                            'width' => '30%', 
+                            ),
+                          array('data' => $action_link),
+            );
+        }
+    } else if(arg(2) === variable_get('implant_id', 40)){
+        $rows[]= array(array('data' => t("Sorry! You don't have any registered implants"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;','&nbsp;','&nbsp;' );
+    } else {
+        $rows[]= array(array('data' => t("Sorry! You don't have any registered products"), 'width' => '100%' , 'class'=> 'no_record_found'), '&nbsp;','&nbsp;','&nbsp;' );
+    }
+    
+    $output .= theme('table', $header, $rows);
+    return($output);
+
+}
+
+function restaurant_management_implant_recall_form() {
+    global $user;
+    $email = $user->mail; 
+    $webform_name = db_result(db_query("SELECT title FROM {node} nd
+                      WHERE nd.nid = %d ", arg(1) ));
+    $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                          INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                          WHERE dsdata.sid = %d AND wc.nid = %d and wc.cid = %d ",
+                          arg(1), variable_get('implant_id',40) , 1  ));
+    $form['implant_recall'] = array(
+          '#type' => 'fieldset', 
+          '#title' => t($title), 
+          '#weight' => 5, 
+          '#collapsible' => True, 
+          '#collapsed' => FALSE,
+         );
+
+        $form['implant_recall']['push_text'] = array(
+          '#type' => 'textfield',
+          '#default_value' => '',
+          '#title' => t('Push notification text'),
+        );
+        
+        $form['implant_recall']['push_button'] = array(
+          '#type' => 'button',
+          '#value' => t('Send push notification'),
+        );
+
+        $form['implant_recall']['email_text'] = array(
+          '#type' => 'textarea',
+          '#default_value' => '',
+          '#title' => 'Email text',
+          '#required' => TRUE,
+        );
+
+        $form['implant_recall']['sid'] = array(
+          '#type' => 'hidden',
+          '#value' => arg(1),
+        );
+         $form['implant_recall']['email_button'] = array(
+          '#type' => 'submit',
+          '#value' => t('Send email notification'),
+        );
+       
+        return $form;
+
+}
+
+function restaurant_management_implant_recall_form_submit(&$form,$form_state) {
+    $text = $form_state['values']['email_text'];
+    $res = db_queryd('Select details from registration where nid = %d and sid = %d',variable_get('implant_id', 40),$form_state['values']['sid']);
+    if(db_affected_rows()){
+        $email = '';
+        while($row = db_fetch_array($res)){
+            $details = unserialize($data['details']);
+            $email .= $details['email'].','; 
+
+        }
+        
+
+        // email a thank you.
+      $subject = "Medical Implant recall";
+      //$message = print_r($form_values['submitted'], true);  //trying to get a var dump.
+      $from = 'rmi@noreply.com';
+      $headers = "From: $from\nReply-to: $from\nX-Mailer: Drupal\nReturn-path: $from\nErrors-to: $from";
+      drupal_mail('testimonials_confirm', $email, $subject, $message, $from, $headers);
+      drupal_set_message('Recall Notification email sent to all users');
+    } 
+    else{
+        drupal_set_message('There are no users for this implants');
+    }
+}
+
+function view_qrcodes() {
+    global $user;
+    global $base_path;
+    global $base_url;
+
+    $nid = arg(2);
+    $sid = arg(4); 
+
+    $data = array('nid' => $nid, 'sid' => $sid,'uid' => $uid);
+   
+    $output .= theme('qr_codes', $data, 150, 150, 0, variable_get('qr_codes_block_imagecache_preset', ''));
+    
+    $output .= '</br>';
+    $output .= 'URL: '.$base_url.'/business/'.$nid.'/register/'.$sid;
+    return $output;
+}

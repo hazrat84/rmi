@@ -1,0 +1,5 @@
+; $Id: popdata.info, Exp $
+name = RMI Data Population Module
+description = Specifically used to populate data for RMI
+package = Custom
+core = 6.x

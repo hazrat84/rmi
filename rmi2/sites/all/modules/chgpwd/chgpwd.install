@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_install();
+ * change the module weight.
+ */
+function chgpwd_install() {
+  $res = array();
+  
+  $ret[] = update_sql("UPDATE {system} SET weight = 100 WHERE name = 'chgpwd'");
+  
+  // set this variable for compatibility with password_policy
+  variable_set('change_password_tab_url', 'chgpwd');
+  
+  return $res;
+}
+
+
+/**
+ * Implements hook_update_N().
+ * Set change_password_tab_url variable.
+ */
+function chgpwd_update_6001() {
+  variable_set('change_password_tab_url', 'chgpwd');
+}
+
+
+/**
+ * Implements hook_update_N();
+ * change the module weight.
+ */
+function chgpwd_update_6200() {
+  $res = array();
+  
+  $ret[] = update_sql("UPDATE {system} SET weight = 100 WHERE name = 'chgpwd'");
+  variable_set('change_password_tab_url', 'chgpwd');
+  
+  return $res;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function chgpwd_uninstall() {
+  variable_del('change_password_tab_url');
+}

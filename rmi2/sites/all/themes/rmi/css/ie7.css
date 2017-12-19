@@ -1,0 +1,76 @@
+#user-login .form-item {
+  width: auto;
+}
+ul#nice-menu-1 {  
+  display: inline;
+  margin-top: 15px;
+  width: 100%;
+  float: right;
+}
+
+.block-nice_menus {
+  width: 760px;
+  float: right !important;
+}
+.item-list .views-field-view-node {
+  float: left; margin-top: 5px;
+}
+#cfnavbar {
+  margin-left: 10px;
+}
+sup {
+  font-size: 16px;  
+}
+
+/* ------------ Specific CSS for My Accounts Data Group Section ------------ */
+
+.my_data .dt_group {
+  height: 140px;  
+}
+
+/* ------------ Table listing of Data Groups ------------ */
+
+#add_ins {
+  padding: 0;  
+}
+
+/* ------------ Form Fields Generic ------------ */
+
+#webform-component-end-date,
+#webform-component-start-date {
+  width: 922px;
+}
+#edit-submitted-letters-of-recommendation-info-date-wrapper {
+  width: 922px;
+  float: left;
+}
+/* ------------ Government ID Form Specific CSS ------------ */
+#webform-client-form-8 #edit-submitted-expiration-date-wrapper,
+#webform-client-form-8 #edit-submitted-date-issued-wrapper {
+  width: 922px;
+  float: left;
+}
+/* ------------ Financial Form Specific CSS ------------ */
+#webform-client-form-3 #edit-submitted-loans-info-date-loan-wrapper,
+#webform-client-form-3 #edit-submitted-credit-score-info-date-credit-wrapper,
+#webform-client-form-3 #edit-submitted-credit---debit-cards-info-expiration-code-wrapper {
+  width: 922px;
+  float: left;
+}
+/* ------------ Medical History Form Specific CSS ------------ */
+#webform-client-form-5 #edit-submitted-implants-info-type-wrapper,
+#webform-client-form-5 #edit-submitted-implants-info-date-implants-wrapper,
+#webform-client-form-5 #edit-submitted-surgeries-info-date-surgeries-wrapper {
+  width: 922px;
+  float: left;
+}
+/* ------------ Product and Warranties Form Specific CSS ------------ */
+#webform-client-form-11 #edit-submitted-date-of-purchase-wrapper {
+  width: 922px;
+  float: left;
+}
+/* ------------ Personal Data Form Specific CSS ------------ */
+#webform-client-form-2 #edit-submitted-dob-wrapper {
+  width: 922px;
+  float: left;
+}

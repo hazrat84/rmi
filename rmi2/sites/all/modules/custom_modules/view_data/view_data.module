@@ -1,0 +1,735 @@
+<?php
+
+/**
+ * This module provides a simple way to create forms and questionnaires.
+ *
+ * The initial development of this module was sponsered by Ã…F Industri AB, Open
+ * Source City and Karlstad University Library. Continued development sponsored
+ * by Lullabot.
+ *
+ * @author Qamar Munir
+ */
+
+/**
+ * Implements hook_help().
+ */
+function view_data_help($section = 'admin/help#custom', $arg = NULL) {
+  $output = '';
+  switch ($section) {
+    case 'admin/content/custom':
+      $output = '<p>' . t('This page lists all of the content on the site that may have a webform attached to it.') . '</p>';
+      break;
+  }
+
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function view_data_perm() {
+  return array('access datagroup uploaded files');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function view_data_menu() {
+  $items = array();
+  // View My data groups
+  $items['user/account'] = array(
+      'title' => 'My Account',
+      'description' => 'View the list of available data groups.',
+      'page callback' => 'myaccount_page',
+      'type' => MENU_NORMAL_ITEM,
+      'access arguments' => array("access all webform results"),
+  );
+  $items['view/data/%node/%user'] = array(
+      'description' => 'View the list of submission of repective data groups.',
+      'page callback' => 'view_data_submission',
+      'type' => MENU_NORMAL_ITEM,
+      'access arguments' => array("access all webform results"),
+  );
+  $items['node/%/data/submission/%/edit/%'] = array(
+      'title' => 'Edit',
+      'page callback' => 'view_data_submission_edit_page',
+      'page arguments' => array(1, 4),
+      'access arguments' => array("access all webform results"),
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['node/%/data/submission/%/delete/%'] = array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('view_data_submission_delete_form'),
+      'access arguments' => array("access all webform results"),
+      'type' => MENU_NORMAL_ITEM,
+  );
+  $items['print/data'] = array(
+      'description' => 'Print the submission of repective data groups.',
+      'page callback' => 'print_data_submission',
+      'type' => MENU_NORMAL_ITEM,
+      'access arguments' => array("access all webform results"),
+  );
+  $items['remove/recommendation/letter'] = array(
+      'description' => 'Remove Letter of Recommendation.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('remove_recommendation_letter_form'),
+      'type' => MENU_NORMAL_ITEM,
+      'access arguments' => array("access all webform results"),
+  );
+
+  return $items;
+}
+
+/**
+ * Custom callback to show all the data groups
+ * 
+ * @global $base_url
+ * @global $user
+ * @return
+ */
+function myaccount_page() {
+  global $user;
+  $shared = array();
+  $image_path = base_path() . drupal_get_path('theme', 'rmi');
+  $img = '<img alt="Data Group" src="' . $image_path . '/images/database_icon.png" />';
+
+  module_load_include('inc', 'webform', 'includes/webform.submissions');
+  $output = '';
+  $output.= '<div class="blue-box-title">'.l(t('Download All Data Groups'), 'download/all/data').'</div>';
+  $output.= '<div class="blue-box-title">General Data Groups</div>';
+  $output.= '<div class="data my_data">';
+  // Get all the shared Data Groups from the current user
+  $mysql = db_query("SELECT DISTINCT n.nid FROM data_group_sharing s 
+                      INNER JOIN users u on u.uid = s.contact_uid
+                      INNER JOIN node n on n.nid = s.nid
+                      WHERE s.contact_uid = %d", $user->uid);
+  while ($r = db_fetch_array($mysql)) {
+    $shared[] = $r['nid'];
+  }
+
+  //$rs = db_query("SELECT nid,title FROM {node} WHERE status = 1 AND ((type = 'webform' and nid NOT IN (SELECT nid from local_datagroups where uid != %d)) OR nid IN (SELECT nid from local_datagroups where uid = %d)) ORDER BY title ASC",$user->uid,$user->uid);
+
+  $rs1 = db_query("SELECT nid,title FROM {node} WHERE status = 1 AND type = 'webform' and nid NOT IN (SELECT nid from local_datagroups) and nid NOT IN (%d,%d,%d,%d) ORDER BY title ASC", variable_get('product_id', 33), variable_get('doc_id', 55), variable_get('implant_id', 34), variable_get('rest_id', 33));
+
+  while ($row = db_fetch_array($rs1)) {
+    $title = $row['title'];
+    $nid = $row['nid'];
+
+    // show share if the data group is not shared
+    $share = 'Share';
+    $share_link = 'share/data-groups/' . $row['nid'];
+    $view_link = 'view/data/' . $nid . '/' . $user->uid;
+
+    // Data Group Starts from here   
+    $output.= '<div class="data_group">';
+
+    $output.= '<div class="wraps_data_group">';
+
+    $output.= '<div class="dt_group">';
+
+    $output.= '<div class="img_wrap">';
+    $output.= '<div class="dg_img">' . l($img, $view_link, array('html' => TRUE)) . '</div>';
+    $output.= '</div>';
+
+    $output.= '<div class="dg_title">';
+    $output.= '<p>' . l($title, $view_link) . '</p>';
+    $output.= '</div>';
+    $output.= '<div class="dg_tools">';
+    $output.= '<div class="tool1"><p>' . l('View', $view_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool2"><p>' . l('Share', $share_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool3"><p>' . l('Download', 'download/data/'.$nid) . '</p></div>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // Data Group Shadow
+    $output.= '<div class="dt_shadow">';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // data group DIV - ENDs
+    $output.= '</div>';
+  }
+
+  $output.= '<div class="blue-box-title">Local Data Groups<span style="float:right;margin-right:30px;">
+  ' . l(t('Add Local Datagroup'), '/node/add/webform') . '
+  </span></div>';
+  $output.= '<div class="data my_data">';
+
+  $rs2 = db_query("SELECT nid,title FROM {node} WHERE status = 1 AND type = 'webform' and nid IN (SELECT nid from local_datagroups where uid = %d) ORDER BY title ASC", $user->uid);
+
+  while ($row = db_fetch_array($rs2)) {
+    $title = $row['title'];
+    $nid = $row['nid'];
+
+    // show share if the data group is not shared
+    $share = 'Share';
+    $share_link = 'share/data-groups/' . $row['nid'];
+    $view_link = 'view/data/' . $nid . '/' . $user->uid;
+
+    // Data Group Starts from here   
+    $output.= '<div class="data_group">';
+
+    $output.= '<div class="wraps_data_group">';
+
+    $output.= '<div class="dt_group">';
+
+    $output.= '<div class="img_wrap">';
+    $output.= '<div class="dg_img">' . l($img, $view_link, array('html' => TRUE)) . '</div>';
+    $output.= '</div>';
+
+    $output.= '<div class="dg_title">';
+    $output.= '<p>' . l($title, $view_link) . '</p>';
+    $output.= '</div>';
+    $output.= '<div class="dg_tools">';
+    $output.= '<div class="tool1"><p>' . l('View', $view_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool2"><p>' . l('Share', $share_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool3"><p>' . l('Download', '') . '</p></div>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // Data Group Shadow
+    $output.= '<div class="dt_shadow">';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // data group DIV - ENDs
+    $output.= '</div>';
+  }
+
+  $output.= '<div class="blue-box-title">Specialized Data Groups</div>';
+  $output.= '<div class="data my_data">';
+
+  $rs = db_query("SELECT nid,title FROM {node} WHERE status = 1 AND type = 'webform' and nid NOT IN (SELECT nid from local_datagroups where uid != %d) and nid  IN (%d,%d,%d,%d) ORDER BY title ASC", $user->uid, variable_get('product_id', 33), variable_get('doc_id', 55), variable_get('implant_id', 34), variable_get('rest_id', 33));
+
+  while ($row = db_fetch_array($rs)) {
+    $title = $row['title'];
+    $nid = $row['nid'];
+
+    // show share if the data group is not shared
+
+    if ($nid !== variable_get('rest_id', 33)) {
+      $share = 'Share';
+      $share_link = 'share/data-groups/' . $row['nid'];
+      $view_link = 'view/business/' . $row['nid'] . '/registered';
+    } else {
+      $view_link = 'user/view/global/' . $row['nid'] . '/business';
+      unset($share);
+      unset($share_link);
+    }
+    // Data Group Starts from here   
+    $output.= '<div class="data_group">';
+
+    $output.= '<div class="wraps_data_group">';
+
+    $output.= '<div class="dt_group">';
+
+    $output.= '<div class="img_wrap">';
+    $output.= '<div class="dg_img">' . l($img, $view_link, array('html' => TRUE)) . '</div>';
+    $output.= '</div>';
+
+    $output.= '<div class="dg_title">';
+    $output.= '<p>' . l($title, $view_link) . '</p>';
+    $output.= '</div>';
+    $output.= '<div class="dg_tools">';
+    $output.= '<div class="tool1"><p>' . l('View', $view_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool2"><p>' . l('Share', $share_link) . '</p></div>';
+    $output.= '<div class="seperator"></div>';
+    $output.= '<div class="tool3"><p>' . l('Download', '') . '</p></div>';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // Data Group Shadow
+    $output.= '<div class="dt_shadow">';
+    $output.= '</div>';
+
+    $output.= '</div>';
+    // data group DIV - ENDs
+    $output.= '</div>';
+  }
+
+  $output .= '</div>';
+  return($output);
+}
+
+function view_data_submission() {
+  global $base_path, $base_url;
+  $node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = " . arg(2)));
+  if ($node_title == 'Contact Info') {
+    $data_title = 'Name';
+  } else {
+    $data_title = 'Title';
+  }
+  drupal_set_title($node_title);
+  $output = '';
+
+  $button_link = $base_url . '/' . drupal_get_path_alias('node/' . arg(2)) . '?destination=view/data/' . arg(2) . '/' . arg(3);
+  $output.= '';
+
+  $output.= '<div class="nav3_button">
+               <input type="button" value="Add ' . $node_title . ' +" id="add_ins" onclick="window.location=\'' . $button_link . '\'" />
+             </div>';
+
+  $output.= '<div class="clear"></div>
+				<div class="data-table">';
+  $header = array('Data', 'Actions');
+
+  $count = 1;
+  $rs = db_query("SELECT sid FROM {datagroup_submissions} s
+                    INNER JOIN {users} u ON u.uid = s.uid
+                    INNER JOIN {node} n ON n.nid = s.nid
+                    WHERE s.uid = %d AND s.nid = %d", arg(3), arg(2));
+
+  if (db_affected_rows()) {
+    while ($row = db_fetch_array($rs)) {
+      $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                        INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                        WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s' ", $row['sid'], arg(2), $data_title));
+      $edit_link = 'node/' . arg(2) . '/data/submission/' . $row["sid"] . '/edit/' . $count;
+      $titles = l($title, $edit_link, array('query' => 'destination=view/data/' . arg(2) . '/' . arg(3)));
+      $rows[] = array(array('data' => $titles, 'width' => '85%', 'class' => 'anchored-data'),
+          array('data' => l("<img src='" . $base_path . path_to_theme() . "/images/edits.png' width='20' height='19' title='Edit' />", 'node/' . arg(2) . '/data/submission/' . $row["sid"] . '/edit/' . $count, $options = array('html' => TRUE, 'query' => 'destination=view/data/' . arg(2) . '/' . arg(3))) . ' &nbsp; ' .
+              l("<img src='" . $base_path . path_to_theme() . "/images/dels.png' title='Delete' />", 'node/' . arg(2) . '/data/submission/' . $row["sid"] . '/delete/' . $count, $options = array('html' => TRUE, 'query' => 'destination=view/data/' . arg(2) . '/' . arg(3))) . ' &nbsp; ' .
+              l("<img src='" . $base_path . path_to_theme() . "/images/print.png' title='Print' />", 'print/data/' . arg(2) . '/' . $row["sid"] . '/' . $count, $options = array('html' => TRUE, 'query' => 'destination=view/data/' . arg(2) . '/' . arg(3), 'attributes' => array('target' => '_blank')))
+              , 'class' => 'action_data'),
+      );
+      $count++;
+    }
+  } else {
+    $rows[] = array(array('data' => t("There are no submissions for this data group"), 'width' => '100%', 'class' => 'no_record_found'), '&nbsp;');
+  }
+
+  $output.= theme('table', $header, $rows);
+  return($output);
+}
+
+/**
+ * Menu callback; Present a Webform submission page for display or editing.
+ */
+function view_data_submission_edit_page($nid, $sid) {
+  global $user, $base_url;
+  $node = node_load($nid);
+  $node_title = db_result(db_query("SELECT title FROM {node} WHERE nid = " . $nid));
+  if ($node_title == 'Contact Info') {
+    $data_title = 'Name';
+  } else {
+    $data_title = 'Title';
+  }
+  // Add admin CSS.
+  drupal_add_css(drupal_get_path('module', 'webform') . '/css/webform-admin.css', 'module', 'all', FALSE);
+
+  // Set the correct page title.
+  $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                    INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                    WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = '%s'", arg(4), arg(1), $data_title));
+  drupal_set_title($title);
+  //print_r($submission); exit;
+  // Query the required submission data from custom table.
+  $query = 'SELECT s.* FROM datagroup_submissions s WHERE s.sid = %d AND s.nid = %d';
+  $result = db_query($query, arg(4), arg(1));
+  $row = db_fetch_object($result);
+  $submission->sid = $row->sid;
+  $submission->nid = $row->nid;
+  $submission->submitted = $row->submitted;
+  $submission->remote_addr = $row->remote_addr;
+  $submission->uid = $row->uid;
+  $submission->is_draft = $row->is_draft;
+  $submission->data = array();
+  // Convert the queried rows into submissions.
+  $rs = db_query('SELECT sd.cid, sd.data FROM datagroup_submitted_data sd WHERE sd.sid = %d AND sd.nid = %d', arg(4), arg(1));
+  while ($row1 = db_fetch_object($rs)) {
+    // CID may be NULL if this submission does not actually contain any data.
+    // Data population for the edit page
+    if ($row1->cid) {
+      $submission->data[$row1->cid]['value'][0] = $row1->data;
+    }
+  }
+//     $sub_rs = db_query("SELECT COUNT(*) as quantity, cid, title FROM sub_datagroup_submissions WHERE nid =%d AND sid =%d", arg(1), arg(4));
+//    $rec = db_fetch_array($sub_rs);
+//    print_r($submission); exit;
+//    for ($i = 1; $i < $rec->quantity; $i++) {
+//        //there can be multiple fieldsets and so multiple add more buttons
+//        if ($form_state["values"]["op"] == 'Add ' . $rec->fieldset_name) {
+//            // get all the fields with in this fieldset
+//            $fields_sql = "SELECT form_key FROM {webform_component} WHERE nid = %d AND pid = %d AND type = '%s'";
+//            $fields_sql_result = db_query($fields_sql, $rec->nid, $rec->fieldset_cid, "fieldset");
+//
+//            while ($fields = db_fetch_object($fields_sql_result)) {
+//                $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i] = $form["submitted"][$rec->fieldset_form_key][$fields->form_key];
+//            }
+//        }
+//    }
+  //print_r($submission); exit;
+  //print_r($node); exit;
+  //$output = "<div class='close_group'><a href='" . $base_url . "/" . $_REQUEST['destination'] . "'><img alt='close' src='" . base_path() . "sites/all/themes/rmi/images/button_delete_blue.png' title='Close' /></a></div>";
+  $output .= drupal_get_form('webform_client_form_' . $node->nid, $node, $submission);
+  //$output .= view_data_subgroups_instance();
+  //echo $output; exit;
+  // Determine the mode in which we're displaying this submission.
+  $mode = 'form';
+  // Add navigation for administrators.
+  $navigation = NULL;
+  $information = NULL;
+  // Actions may be shown to all users.
+  $actions = theme('links', module_invoke_all('webform_submission_actions', $node, $submission), array('class' => 'links inline webform-submission-actions'));
+  // Disable the page cache for anonymous users viewing or editing submissions.
+  if (!$user->uid) {
+    webform_disable_page_cache();
+  }
+
+  return theme('webform_submission_page', $node, $submission, $output, $navigation, $information, $actions, $mode);
+}
+
+function view_data_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'user_login') {
+    if (empty($form['#parameters']['1']['post']['pass'])) {
+      $form['#validate'] = view_data_user_login_default_validators();
+    }
+  } else if ($form_id == 'webform_client_form_8') {
+    $form['#validate'][] = 'view_data_date_validators';
+  } else if ($form_id == 'user_profile_form') {
+//        $form['account']['old_pass'] = array('#type' => 'password',
+//            '#title' => t('Old Password'),
+//            '#default_value' => '',
+//            '#maxlength' => '12',
+//            '#required' => TRUE,
+//            '#weight' => '-1',
+//            '#size' => '25'
+//        );
+    $form['account']['pass']['#process'] = array('expand_password_confirm', 'view_data_password_confirm');
+    $form['#validate'][] = 'view_data_change_password_validators';
+    //$form['account']['pass']['#title'] = t('New Password');
+  } else if ($form_id == 'user_register') {
+    $form_new = array();
+    $form_new['Personal information'] = $form['Personal information'];
+    $form_new['account'] = $form['account'];
+    foreach ($form as $key => $val) {
+      if ($key != 'Personal information' && $key != 'account') {
+        $form_new[$key] = $val;
+      }
+    }
+    $form = $form_new;
+    $form['account']['name']['#required'] = FALSE;
+  }
+  /* else if ($form_id == 'webform_client_form_14') {
+    $form['#validate'][] =  'view_data_contact_info_phone_validators';
+    } */
+}
+
+/**
+ * Implementation of expand_password_confirm.
+ */
+function view_data_password_confirm($element) {
+  $element['pass1']['#title'] = t("New Password");
+  $element['pass2']['#title'] = t("Confirm New Password");
+  return $element;
+}
+
+function view_data_submission_delete_form() {
+  global $user;
+  $node = node_load(arg(1));
+  drupal_set_title($node->title . '&nbsp;' . arg(6));
+  $query = 'SELECT s.* FROM datagroup_submissions s WHERE s.sid = %d AND s.nid = %d';
+  $result = db_query($query, arg(4), arg(1));
+  $row = db_fetch_object($result);
+  $submission->sid = $row->sid;
+  $submission->nid = $row->nid;
+  $submission->submitted = $row->submitted;
+  $submission->remote_addr = $row->remote_addr;
+  $submission->uid = $row->uid;
+  $submission->is_draft = $row->is_draft;
+  $form['#tree'] = TRUE;
+  $form['details']['nid'] = array(
+      '#type' => 'value',
+      '#value' => $node->nid,
+  );
+  $form['details']['sid'] = array(
+      '#type' => 'value',
+      '#value' => $submission->sid,
+  );
+  $question = t('Are you sure you want to delete this data group submission?');
+
+  if (isset($_GET['destination'])) {
+    $destination = $_GET['destination'];
+  } else {
+    $destination = 'view/data/' . $node->nid . '/' . $user->uid;
+  }
+
+  return confirm_form($form, NULL, $destination, $question, t('Delete'), t('Cancel'));
+}
+
+function view_data_submission_delete_form_submit($form, &$form_state) {
+  //print_r($form_state); exit;
+  global $user;
+  $nid = $form_state['values']['details']['nid'];
+  $sid = $form_state['values']['details']['sid'];
+  $rs_file = db_query("SELECT wc.`cid`, wc.`name`, wc.`type`, dsd.data  FROM `datagroup_submitted_data` dsd
+                        INNER JOIN `webform_component` wc ON wc.cid= dsd.cid
+                        WHERE dsd.uid = %d  AND wc.nid = %d and dsd.sid = %d AND wc.type = 'file'  ORDER BY  `wc`.`cid` ASC ", $user->uid, $nid, $sid);
+  if (db_affected_rows()) {
+    while ($row_file = db_fetch_object($rs_file)) {
+      if (!empty($row_file->data)) {
+        $file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $row_file->data));
+        unlink($file_path);
+        db_query('DELETE FROM {files} WHERE fid = %d', $row_file->data);
+      }
+    }
+  }
+  db_query('DELETE FROM {datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d ', $nid, $sid, $user->uid);
+  db_query('DELETE FROM {datagroup_submitted_data} WHERE nid = %d AND sid = %d AND uid = %d ', $nid, $sid, $user->uid);
+  $rs = db_query("SELECT `ssid` FROM {sub_datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d", $nid, $sid, $user->uid);
+  while ($row = db_fetch_object($rs)) {
+    $rs_sub_file = db_query("SELECT wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d AND wc.type = 'file'  ORDER BY  `wc`.`cid` ASC", $row->ssid, $nid);
+    if (db_affected_rows()) {
+      while ($row_file_sub = db_fetch_object($rs_sub_file)) {
+        if (!empty($row_file_sub->data)) {
+          $sub_file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $row_file_sub->data));
+          unlink($sub_file_path);
+          db_query('DELETE FROM {files} WHERE fid = %d', $row_file_sub->data);
+        }
+      }
+    }
+    db_query('DELETE FROM {sub_datagroup_submitted_data} WHERE ssid = %d', $row->ssid);
+  }
+  db_query('DELETE FROM {sub_datagroup_submissions} WHERE nid = %d AND sid = %d AND uid = %d', $nid, $sid, $user->uid);
+  db_query('DELETE FROM {webform_submissions} WHERE nid = %d AND sid = %d AND uid = %d', $nid, $sid, $user->uid);
+  db_query('DELETE FROM {webform_submitted_data} WHERE nid = %d AND sid = %d', $nid, $sid);
+
+  $form_state['redirect'] = 'view/data/' . $nid . '/' . $sid;
+}
+
+function view_data_subgroups_instance() {
+  global $base_path;
+  $records = '<div class="data-table">
+                    <table width="100%" border="0">
+                    <tr>
+                    <th width="740" align="left" valign="middle" bgcolor="72ade3">Telephone Numbers</th>
+                    <th width="125" align="center" valign="middle"  bgcolor="72ade3">Action</th>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    <tr>
+                    <td align="left" valign="middle" bgcolor="#FFFFFF"><span class="style5">999-99-9999</span></td>
+                    <td align="center" valign="middle" bgcolor="#5c7892"><img src="' . $base_path . path_to_theme() . '/images/icon_delete.jpg" /></td>
+                    </tr>
+                    </table>
+                </div>';
+  return $records;
+}
+
+function view_data_user_login_default_validators() {
+  return array('user_login_name_validate', 'user_login_authenticate_validate');
+}
+
+function view_data_date_validators($form, $form_state) {
+  $issue_date = strtotime($form_state['values']['submitted']['date_issued']['year'] . '-' . $form_state['values']['submitted']['date_issued']['month'] . '-' . $form_state['values']['submitted']['date_issued']['day']);
+  $expiration_date = strtotime($form_state['values']['submitted']['expiration_date']['year'] . '-' . $form_state['values']['submitted']['expiration_date']['month'] . '-' . $form_state['values']['submitted']['expiration_date']['day']);
+  //echo $issue_date."<br/>". $expiration_date; exit;
+  //echo ($issue_date > $expiration_date); exit;
+  if ($issue_date > $expiration_date) {
+    form_error($form, t('The expiration date must be later than issue date.'));
+  }
+}
+
+function view_data_change_password_validators($form, $form_state) {
+  global $user;
+//    if (!empty($form_state['values']['old_pass'])) {
+//        if (md5($form_state['values']['old_pass']) != $user->pass) {
+//            form_error($form, t('Old password is incorrect.'));
+//            return false;
+//        }
+//    }
+}
+
+function print_data_submission() {
+  global $base_url;
+  global $user;
+  $title = db_result(db_query("SELECT dsdata.data FROM `datagroup_submitted_data` dsdata
+                                    INNER JOIN webform_component wc on wc.cid = dsdata.cid
+                                    WHERE dsdata.sid = %d AND wc.nid = %d and wc.name = 'Title'", arg(3), arg(2)));
+  drupal_set_title($title);
+  $result = db_query("SELECT wc.`cid`, wc.`name`, wc.`type`, dsd.data  FROM `datagroup_submitted_data` dsd
+                        INNER JOIN `webform_component` wc ON wc.cid= dsd.cid
+                        WHERE dsd.uid = %d AND wc.nid = %d and dsd.sid = %d ORDER BY  `wc`.`cid` ASC ", $user->uid, arg(2), arg(3));
+  $output = '';
+  $output_datagroups = '<div class="form2">';
+  while ($row = db_fetch_object($result)) {
+    $data = array();
+    $data['label'] = $row->name;
+    if (( $data['label'] == 'Amount') && !empty($row->data)) {
+      $data['value'] = "$" . number_format($row->data, 2, '.', ',');
+    } else if (($row->type == "date") && !empty($row->data)) {
+      $data['value'] = format_date(strtotime($row->data), 'small');
+      //$data['value'] = date("m-d-Y", strtotime($row->data));
+    } else if (($row->type == "file") && !empty($row->data)) {
+      $file_name = db_result(db_query("SELECT filename from files where fid = %d", $row->data));
+      $data['value'] = $file_name;
+    } else if (strstr($row->name, 'title') || strstr($row->name, 'Title')) {
+      $data['label'] = '';
+    } else {
+      $data['value'] = $row->data;
+    }
+    if ($data['value'] == '') {
+      $data['value'] = '&nbsp;';
+    }
+    if (!empty($data['label'])) {
+      $output_datagroups .= '<div class="row">
+			<div class="left1">' . $data['label'] . '</div><div class="left2">' . $data['value'] . '</div>
+		</div>';
+    }
+  }
+  $output .= $output_datagroups . '</div><div class="clear"></div>';
+  $result_subdatagroups = db_query("SELECT wa.`fieldset_cid`, wa.`fieldset_name`  FROM `webform_addmore` wa WHERE wa.nid = %d ORDER BY  `wa`.`fieldset_cid` ASC ", arg(2));
+  while ($row1 = db_fetch_object($result_subdatagroups)) {
+    $rows = array();
+    $header = array();
+    $info_cid = db_result(db_query("SELECT cid FROM webform_component WHERE nid = %d AND pid = %d  AND form_key = 'info'", arg(2), $row1->fieldset_cid));
+    $rs_header = db_query("SELECT cid, name FROM webform_component WHERE nid = %d AND pid = %d ORDER BY `cid`", arg(2), $info_cid);
+    while ($rw_header = db_fetch_object($rs_header)) {
+      $header[] = $rw_header->name;
+    }
+
+    $output_subdatagroups = '<div class="data-table">';
+    $output_subdatagroups .= '<div class="sub_data_group_heading">' . $row1->fieldset_name . '</div>';
+    $result_sub1 = db_query("SELECT ssid, cid, title, nid FROM `sub_datagroup_submissions` WHERE cid = %d and nid= %d and sid = %d AND uid = %d ", $row1->fieldset_cid, arg(2), arg(3), $user->uid);
+    if (db_affected_rows()) {
+      while ($row2 = db_fetch_object($result_sub1)) {
+        $rs = db_query("SELECT wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d ORDER BY  `wc`.`cid` ASC ", $row2->ssid, $row2->nid);
+        $row = array();
+        while ($row_data = db_fetch_object($rs)) {
+          if ($row_data->type == 'file') {
+            $file_name = db_result(db_query("SELECT filename from files where fid = %d", $row_data->data));
+            $row_data->data = $file_name;
+          } else if (($row_data->type == "date") && !empty($row_data->data) && ($row_data->data != '--')) {
+            $row_data->data = format_date(strtotime($row_data->data), 'small');
+          }
+          if ($row_data->data == '--' || empty($row_data->data)) {
+            $row_data->data = '&nbsp;';
+          }
+          $row[] = $row_data->data;
+        }
+        $rows[] = $row;
+      }
+    } else {
+      $rows[][] = array('data' => 'No data Added', 'colspan' => 5);
+    }
+
+    $output_subdatagroups .=theme_table($header, $rows, $attributes = array(), $caption = NULL);
+    $output_subdatagroups .= '</div>';
+    //print_r($output_subdatagroups);
+    $output_all .= $output_subdatagroups;
+  }
+  //exit;
+  $output .= $output_all;
+  return $output;
+}
+
+/* function view_data_contact_info_phone_validators(&$form, $form_state) {
+  print_r($form_state); exit;
+  }
+  function view_data_validate($node, &$form) {
+  print_r($form); exit;
+  } */
+/* function view_data_webform_validation_validate($validator_name, $items, $components, $rule) {
+  print_r($form_state); exit;
+  print_r($rule); exit;
+  if($validator_name == 'regex') {
+  if(!( preg_match( $rule['data'].'^', $items['item_7'] ) ) ) {
+  return "Invalid Telephone Number";
+  }
+  }
+  } */
+
+function view_data_init() {
+
+  /* global $user;
+    if ($user->uid != 1) {
+    if (arg(0) == 'admin') {
+    drupal_goto("content/access-denied");
+    }
+    } */
+}
+
+function remove_recommendation_letter_form() {
+  global $user;
+  $node = node_load(arg(1));
+  drupal_set_title('Letter of recomendation');
+  $query = 'SELECT s.* FROM sub_datagroup_submissions s WHERE s.sid = %d AND s.nid = %d';
+  $result = db_query($query, arg(4), arg(3));
+  $row = db_fetch_object($result);
+  $submission->sid = $row->sid;
+  $submission->ssid = $row->ssid;
+  $submission->nid = $row->nid;
+  $submission->submitted = $row->submitted;
+  $submission->uid = $row->uid;
+  $submission->title = $row->title;
+  $submission->cid = $row->cid;
+  $form['#tree'] = TRUE;
+  $form['details']['nid'] = array(
+      '#type' => 'value',
+      '#value' => $node->nid,
+  );
+  $form['details']['sid'] = array(
+      '#type' => 'value',
+      '#value' => $submission->sid,
+  );
+  $form['details']['ssid'] = array(
+      '#type' => 'value',
+      '#value' => $submission->ssid,
+  );
+  $question = t('Are you sure you want to delete this Letter of recomendation?');
+
+  if (isset($_GET['destination'])) {
+    $destination = $_GET['destination'];
+  } else {
+    $destination = 'view/data/' . $node->nid . '/' . $user->uid;
+  }
+
+  return confirm_form($form, NULL, $destination, $question, t('Delete'), t('Cancel'));
+}
+
+function remove_recommendation_letter_form_submit($form, &$form_state) {
+  $rs_sub_file = db_query("SELECT wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d AND wc.type = 'file'  ORDER BY  `wc`.`cid` ASC", arg(4), arg(3));
+  if (db_affected_rows()) {
+    while ($row_file_sub = db_fetch_object($rs_sub_file)) {
+      if (!empty($row_file_sub->data)) {
+        $sub_file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $row_file_sub->data));
+        unlink($sub_file_path);
+        db_query('DELETE FROM {files} WHERE fid = %d', $row_file_sub->data);
+      }
+    }
+  }
+  db_query('DELETE FROM {sub_datagroup_submitted_data} WHERE ssid = %d', arg(4));
+  db_query('DELETE FROM {sub_datagroup_submissions} WHERE nid = %d AND ssid = %d', arg(3), arg(4));
+  drupal_set_message(t('Letter of Recommendation deleted sucessfully'), 'notice');
+  drupal_goto(drupal_get_destination());
+}

@@ -1,0 +1,6 @@
+;$Id$
+name = "Data Group Services"
+description = "Provides Data Group services."
+core = 6.x
+dependencies[] = services
+package = Services

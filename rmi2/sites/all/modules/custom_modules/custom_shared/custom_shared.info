@@ -1,0 +1,13 @@
+; $Id: $
+name = Custom Shared
+description = All the functionality related to the Data Group sharing.
+core = 6.x
+package = Custom
+
+
+; Information added by drupal.org packaging script on 2012-05-13
+version = "6.x-3.18"
+core = "6.x"
+project = "Custom"
+datestamp = "1336890407"
+

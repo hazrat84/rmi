@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * This module provides a simple way to create forms and questionnaires.
+ *
+ * The initial development of this module was sponsered by ÅF Industri AB, Open
+ * Source City and Karlstad University Library. Continued development sponsored
+ * by Lullabot.
+ *
+ * @author Qamar Munir
+ */
+
+/**
+ * Implements hook_help().
+ */
+function custom_help($section = 'admin/help#custom', $arg = NULL) {
+    $output = '';
+    switch ($section) {
+        case 'admin/content/custom':
+            $output = '<p>' . t('This page lists all of the content on the site that may have a webform attached to it.') . '</p>';
+            break;
+    }
+
+    return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function custom_perm() {
+    return array('access datagroup uploaded files');
+}
+
+/**
+ * Implements hook_menu().
+ */
+function custom_menu() {
+    $items = array();
+    // Submissions listing.
+    $items['view/attachments/%'] = array(
+        'title' => 'Webforms',
+        'page callback' => 'custom_view_attachments',
+        'access callback' => 'user_access',
+        'access arguments' => array('access datagroup uploaded files'),
+        'description' => 'View and edit all the available webforms on your site.',
+        'type' => MENU_NORMAL_ITEM,
+    );
+    /* $items['buy/individual/plan'] = array(
+        'title' => 'Buy Individual Plan App',
+        'page callback' => 'custom_buy_individual_plan',
+        'access arguments' => array('access content'),
+        'description' => 'View buy individual plan app.',
+        'type' => MENU_NORMAL_ITEM,
+    );*/
+    return $items;
+}
+
+function custom_view_attachments() {
+    global $user;
+    global $base_url;
+    if ($user->uid) {
+        $uid = db_result(db_query("SELECT `uid` FROM {files} WHERE fid = %d", arg(2)));
+        if (($user->uid != $uid)) {
+            $contact = db_result(db_query("SELECT 1 FROM {data_group_sharing} WHERE nid = %d AND contact_uid = %d AND uid = %d", arg(3), $user->uid, $uid));
+        }
+        /* $res = db_query("SELECT Distinct(`contact_uid`) FROM {data_group_sharing} WHERE uid = %d", $user->uid);
+          $contacts = array();
+          while ($row = db_fetch_array($res)) {
+          $contacts[] = $row['contact_uid'];
+          } */
+        if (($user->uid == $uid) || $contact) {
+            $path = db_result(db_query("SELECT `filepath` FROM {files} WHERE fid = %d", arg(2)));
+            drupal_goto($base_url . "/" . $path);
+        } else {
+            drupal_access_denied();
+        }
+    } else {
+        $query = array('destination' => 'view/attachments/' . arg(2) . "/" . arg(3));
+        drupal_goto('user/login', $query);
+    }
+    return 0;
+}
+/**
+* Implements hook_mail_alter().
+*/
+function custom_mail_alter(&$message) {
+    if ($message['id'] == 'logintoboggan_register_no_approval_required') {
+        $site_name = variable_get('site_name', '');
+        $site_mail = variable_get('site_mail', '');
+        if (!empty($site_name) && $site_mail == $message['from']) {
+            $message['from'] = '"' . mime_header_encode($site_name) . '" <' . $site_mail . '>';
+            $message['headers']['From'] = '"' . mime_header_encode($site_name) . '" <' . $site_mail . '>';
+        }
+    }
+}
+
+function custom_form_alter(&$form, &$form_state, $form_id) {
+    if($form_id == 'contact_mail_page') {
+        $form['customer_service'] =  array(
+              '#type' => 'item',
+              '#value' => '<div class="customer_care_div">
+                  <div class="mailing_info_container">
+                    <span class="info_label">Mailing Address</span><br/>
+                    <span class="info">Infinitude Inc<br/>7702 East Doubletree Ranch Road, Suite 300,<br/> Scottsdale, AZ 85258</span>
+                  </div>
+                  <div class="info_container">
+                    <span class="info_label">Phone</span><br/>
+                    <span class="info">480-348-3974 <br/> 888-981-4634</span>
+                  </div>
+                  <div class="info_container">
+                    <span class="info_label">Fax</span><br/>
+                    <span class="info">480-348-3999</span>
+                  </div>
+                  </div>',
+            );
+    }
+}
+function custom_buy_individual_plan_form() {
+    $form = array();
+    $form['iphone_app_link'] =  array(
+              '#type' => 'item',
+              '#value' => l(t('Buy Individual RMI Plan (iPhone App)'), 'http://www.apple.com/itunes/',  array( 'attributes' => array('class' => 'get_started pop-up-links', 'target' => '_blank'))),
+            );
+    $form['android_app_link'] =  array(
+              '#type' => 'item',
+              '#value' => l(t('Buy Individual RMI Plan (Android App)'), 'https://play.google.com/',  array( 'attributes' => array('class' => 'get_started pop-up-links', 'target' => '_blank'))),
+            );
+    return $form;
+}
+function custom_buy_family_plan_form() {
+    $form = array();
+    $form['iphone_family_app_link'] =  array(
+              '#type' => 'item',
+              '#value' => l(t('Buy Family RMI Plan (iPhone App)'), 'http://www.apple.com/itunes/',  array( 'attributes' => array('class' => 'get_started pop-up-links', 'target' => '_blank'))),
+            );
+    $form['android_family_app_link'] =  array(
+              '#type' => 'item',
+              '#value' => l(t('Buy Family RMI Plan (Android App)'), 'https://play.google.com/',  array( 'attributes' => array('class' => 'get_started pop-up-links', 'target' => '_blank'))),
+            );
+    return $form;
+}

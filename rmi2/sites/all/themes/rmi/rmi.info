@@ -1,0 +1,23 @@
+name = Register My Info
+description = Tableless, recolorable, multi-column, fluid width theme for RMI site.
+version = VERSION
+core = 6.x
+engine = phptemplate
+regions[left] = Left sidebar
+regions[right] = Right sidebar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = Footer
+regions[slider] = Rotator Banner
+regions[dropmenu] = Drop Down Menu
+regions[accountnav] = My account menu
+regions[carousel] = Carousel
+stylesheets[all][] = style.css
+scripts[] = sign-up.js
+
+; Information added by drupal.org packaging script on 2012-07-03
+version = "6.26"
+project = "drupal"
+datestamp = "1341320410"
+
+

@@ -1,0 +1,618 @@
+<?php
+drupal_add_js(drupal_get_path("module", "webform_addmore") . "/webform_addmore.js");
+function webform_addmore_redraw_datagroup_form(&$form, $fieldset_cid) {
+    $arg1 = arg(1) ;
+    $arg4 = arg(4);
+    if(arg(0) == 'ahah_helper') {
+        $arg1 = $_SESSION["edit_subdatagroup_nid"];
+        $arg4 = $_SESSION["edit_subdatagroup_sid"];
+    }
+    
+    $sub_rs = db_query("SELECT cid, title FROM sub_datagroup_submissions WHERE nid =%d AND sid =%d AND cid = %d", $arg1, $arg4, $fieldset_cid);
+    $num_of_existing_subdatagroups = 0;
+    while ($rec1 = db_fetch_object($sub_rs)) {
+        $num_of_existing_subdatagroups++;
+        $rec1->quantity = db_result(db_query("SELECT COUNT(*) as quantity FROM sub_datagroup_submissions WHERE nid =%d AND sid =%d AND cid = %d ", $arg1, $arg4, $rec1->cid));
+        $field_rs = db_query("SELECT sub_fieldset_cid, fieldset_form_key FROM webform_addmore WHERE nid = %d AND fieldset_cid = %d", $arg1, $rec1->cid);
+        $field_rec = db_fetch_object($field_rs);
+        $rec1->fieldset_form_key = $field_rec->fieldset_form_key;
+        $rec1->sub_fieldset_cid = $field_rec->sub_fieldset_cid;
+        if ($rec1->quantity > 0) {
+            for ($i = 0; $i < $rec1->quantity; $i++) {
+                $fields_sql = "SELECT form_key FROM {webform_component} WHERE nid = %d AND pid = %d AND type = '%s'";
+                $fields_sql_result = db_query($fields_sql, $arg1, $rec1->cid, "fieldset");
+                while ($fields = db_fetch_object($fields_sql_result)) {
+                    $form["submitted"][$rec1->fieldset_form_key][$fields->form_key]['ssid'] = array('#type' => 'hidden');
+                    if ($i >= 1) {
+                        $form["submitted"][$rec1->fieldset_form_key][$fields->form_key . $i] = $form["submitted"][$rec1->fieldset_form_key][$fields->form_key];
+                    }
+
+                    $ssub_rs = db_query("SELECT ssid FROM sub_datagroup_submissions WHERE nid =%d AND sid =%d AND cid = %d ORDER BY ssid ASC ", $arg1, $arg4, $rec1->cid);
+                    $j = '';
+                    while ($ss_rec = db_fetch_object($ssub_rs)) {
+                        $rs_sub_feilds = db_query("SELECT cid, form_key FROM {webform_component} WHERE nid = %d AND pid = %d ", $arg1, $rec1->sub_fieldset_cid);
+                        while ($rec_sflds = db_fetch_object($rs_sub_feilds)) {
+
+                            $value = db_result(db_query("SELECT `data` FROM {sub_datagroup_submitted_data} WHERE ssid = %d AND cid = %d", $ss_rec->ssid, $rec_sflds->cid));
+                            $form["submitted"][$rec1->fieldset_form_key][$fields->form_key . $j][$rec_sflds->form_key]["#default_value"] = $value;
+                            
+                        }
+                        $form["submitted"][$rec1->fieldset_form_key][$fields->form_key . $j]['ssid']["#default_value"] = $ss_rec->ssid;
+                            $form["submitted"][$rec1->fieldset_form_key][$fields->form_key . $j]['remove_fields'] = array(
+                                '#type' => 'button',
+                                '#value' => t('Remove'),
+                                '#weight' => 10000,
+                                '#attributes' => array("onclick" => "return removeSubDataGroup(this, " . $ss_rec->ssid . ")")
+                            );
+                        $j++;
+                    }
+                }
+            }
+        }
+    }
+    return $num_of_existing_subdatagroups;
+}
+
+/**
+ * Implementation of hook_form_alter
+ */
+function webform_addmore_form_alter(&$form, &$form_state, $form_id) {
+    //print_r($form); exit;
+    global $base_url;
+    global $user;
+    if($form_id == "webform_client_form_4") {
+        
+        if(arg(5) == 'edit') {
+            $form['add_btn'] =  array(
+              '#type' => 'item',
+              '#value' => '<a class="colorbox-load" href="'.base_path().'colorbox/form/webform_addmore_add_letter_of_recommendation_form?width=500&height=360&nid=' . arg(1) . '&sid=' . arg(4) . '&num='.arg(6).'" title ="Add Letter of Recommendation">'. t('Add Letter of Recommendation') . '</a>',
+            );
+            $rows = array();
+            $header = array();
+            $header = array(t('Title'), t('Date'), t('Person'), t('File'), t('Options') );
+            $result = db_query("SELECT ssid FROM sub_datagroup_submissions WHERE nid = %d AND sid = %d", arg(1), arg(4));
+            if (db_affected_rows ()) {
+                while ($row = db_fetch_object($result)) {
+                    $rs = db_query("SELECT wc.`cid` , wc.`name`, wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d ORDER BY  `wc`.`cid` ASC ", $row->ssid, arg(1));
+                    $row_sub = array();
+                    while ($row_data = db_fetch_object($rs)) {
+                        
+                        if ($row_data->type == 'file') {
+                            if (!empty($row_data->data)) {
+                                $file_name = db_result(db_query("SELECT filename from files where fid = %d", $row_data->data));
+                                $file_path = db_result(db_query("SELECT filepath from files where fid = %d", $row_data->data));
+                                $row_data->data = l($file_name, $base_url . '/' . $file_path);
+                            } else {
+                                $row_data->data = t('No file Uploaded');
+                            }
+                            $row_sub['file'] = $row_data->data;
+                        } else if (($row_data->type == "date") && !empty($row_data->data) && ($row_data->data != '--')) {
+                            $date = explode('-', $row_data->data);
+                            //print_r($date) ;
+                            if( isset($date[0]) && !isset ($date[1]) && !isset ($date[1]) ) {
+                                $row_data->data = $date[0] ;
+                            } else if( empty($date[0]) ) {
+                                 $row_data->data = '' ;
+                            }else {
+                                $row_data->data = format_date(strtotime($row_data->data), 'small');
+                            }
+                            $row_sub['date'] = $row_data->data;
+                        } else if( $row_data->name == 'Person' ) {
+                            $row_sub['person'] = $row_data->data;
+                        } else if ($row_data->name == 'Letter title'  ) {
+                            if( empty($row_data->data) ) {
+                                $row_sub['letter_title'] = t('Recomendation Letter');
+                            } else {
+                                $row_sub['letter_title'] = $row_data->data;
+                            }
+                        }
+                        //$row_sub[] = $row_data->data;
+                    }
+                    $row_sub['option'] = l(t('edit'), 'colorbox/form/webform_addmore_add_letter_of_recommendation_form', array('attributes' => array('class' => 'colorbox-load'), 'query' => array('width' => '500', 'height' => '360', 'nid' => arg(1), 'sid' => arg(4), 'ssid' => $row->ssid, 'num' => arg(6))))
+                            . '&nbsp;' .
+                            l(t('delete'), $base_url . '/remove/recommendation/letter/' . arg(1) . '/' . $row->ssid, array('query' => array('destination' => 'node/' . arg(1) . '/data/submission/' . arg(4) . '/edit/' . arg(6))));
+                    $rows[] = array($row_sub['letter_title'], $row_sub['date'], $row_sub['person'], $row_sub['file'], $row_sub['option'] );
+                }
+                $subdatagroups = '<div class="letter_recom">'.t('Letters of Recomendation').'</div>';
+                $subdatagroups .= theme_table($header, $rows, $attributes = array(), $caption = NULL);
+            } else {
+                $subdatagroups = t("Letters of Recommendation will show up here once added.");
+            }
+            
+            $form['listing'] = array(
+                '#type' => 'item',
+                '#title' => t(''),
+                '#value' => $subdatagroups,
+            );
+            ///Link for add letter of recomendation
+            
+        } else {
+            if(empty($form_state['post']) ){
+                drupal_set_message(t('Once you have added Employment Info, you can then edit it to add Letters of Recommendation'), 'notice');
+            }
+        }
+        $form["#submit"][] = "webform_addmore_form_submit";
+        $form["#submit"][] = "webform_addmore_webform_client_form_submit";
+    }
+    else if ($form['#node']) {
+        if ($form["#node"]->type == "webform" && $form_id == "webform_client_form_" . $form["#node"]->nid) {
+            ahah_helper_register($form, $form_state);
+            $sql = "SELECT nid, fieldset_cid, fieldset_form_key, fieldset_name FROM {webform_addmore} WHERE nid = %d";
+            $sql_result = db_query($sql, $form["#node"]->nid);
+            $quantities = array();
+            if(strpos($form_state['values']['op'], "Remove") !== FALSE) {
+                $remove_ssid = str_replace("Remove", "", $form_state['values']['op']);
+                db_query("DELETE FROM sub_datagroup_submissions WHERE ssid = %d", $remove_ssid);
+                db_query("DELETE FROM sub_datagroup_submitted_data WHERE ssid = %d", $remove_ssid);
+            }
+            while ($rec = db_fetch_object($sql_result)) {
+                
+                if (empty($form_state['values']["submitted"][$rec->fieldset_form_key]["quantity"])) {
+                    $frm = $form_state['values']["submitted_tree"];
+                } else {
+                    $frm = $form_state['values']["submitted"];
+                }
+                if (!$frm[$rec->fieldset_form_key]["quantity"]) {
+                    $quantities[$rec->fieldset_cid] = 1; // quantity is one if form is loaded for the first time
+                    if(arg(3) == "submission" && arg(5) == 'edit') {
+                        $subdatagroup_count = db_result(db_query("SELECT COUNT(*) FROM sub_datagroup_submissions WHERE sid = %d AND cid = %d", arg(4), $rec->fieldset_cid));
+                        $quantities[$rec->fieldset_cid] = ($subdatagroup_count) ? $subdatagroup_count : $quantities[$rec->fieldset_cid];
+                    }
+
+                    // add wrapper around the fieldset only if form is first time loaded and add more option has not been used
+                    $form["submitted"][$rec->fieldset_form_key]["#prefix"] = '<div id="additional-fields-' . $rec->fieldset_form_key . '-wrapper">';
+                    $form["submitted"][$rec->fieldset_form_key]["#suffix"] = '</div>';
+                } else {
+                    $quantities[$rec->fieldset_cid] = $frm[$rec->fieldset_form_key]["quantity"];
+                    //print $quantities[$rec->fieldset_cid]."--1";
+                    //print_r($form_state); exit;
+                    if ($form_state["values"]["op"] == 'Add ' . $rec->fieldset_name) {
+                       // echo $quantities[$rec->fieldset_cid]; exit;
+                        $quantities[$rec->fieldset_cid] = $quantities[$rec->fieldset_cid] + 1;
+                    }
+                    //print $quantities[$rec->fieldset_cid]."--2";
+                    drupal_get_messages('error');
+                    // Clear the form error state.
+                    form_set_error(null, '', true);
+                }
+                
+                $form["submitted"][$rec->fieldset_form_key]["quantity"] = array(
+                    '#type' => "hidden",
+                    '#value' => $quantities[$rec->fieldset_cid],
+                );
+                //print_r($rec->fieldset_form_key . ">>" . $quantities[$rec->fieldset_cid]); exit;
+                if ($form_state["values"]['submitted']) {
+                    
+                    $ind_value = webform_addmore_redraw_datagroup_form($form, $rec->fieldset_cid);
+                    $ind_value = ($ind_value) ? $ind_value : 1;
+                    for ($i = $ind_value; $i < $quantities[$rec->fieldset_cid]; $i++) {
+                        //there can be multiple fieldsets and so multiple add more buttons
+                        if ($form_state["values"]["op"] == 'Add ' . $rec->fieldset_name) {
+                            // get all the fields with in this fieldset
+                            $fields_sql = "SELECT form_key, cid FROM {webform_component} WHERE nid = %d AND pid = %d AND type = '%s'";
+                            $fields_sql_result = db_query($fields_sql, $rec->nid, $rec->fieldset_cid, "fieldset");
+
+                            while ($fields = db_fetch_object($fields_sql_result)) {
+                                $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i] = $form["submitted"][$rec->fieldset_form_key][$fields->form_key];
+                                if($form_state['storage']['submitted_tree'] || $form_state['storage']['submitted']) {
+                                    //if user has entered data on form then we have to retain it
+                                    if($form_state['storage']['submitted'] && !array_key_exists(1, $form_state['storage']['submitted'])) {
+                                        $form_state['storage']['submitted_tree'] = $form_state['storage']['submitted'];
+                                    }
+                                    if($i == 1) {
+                                        if(is_array($form_state['storage']['submitted_tree'][$rec->fieldset_form_key][$fields->form_key])) {
+                                            foreach($form_state['storage']['submitted_tree'][$rec->fieldset_form_key][$fields->form_key] as $storage_key => $storage_val) {
+                                                $form["submitted"][$rec->fieldset_form_key][$fields->form_key][$storage_key]["#default_value"] = $storage_val;
+                                            }
+                                        }
+                                    }
+                                    if(is_array($form_state['storage']['submitted_tree'][$rec->fieldset_form_key][$fields->form_key . $i])) {
+                                        foreach($form_state['storage']['submitted_tree'][$rec->fieldset_form_key][$fields->form_key . $i] as $storage_key => $storage_val) {
+                                            $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i][$storage_key]["#default_value"] = $storage_val;
+                                        }
+                                    }
+                                    else {
+                                        $rs_sub_feilds = db_query("SELECT cid, form_key FROM {webform_component} WHERE nid = %d AND pid = %d ", $_SESSION["edit_subdatagroup_nid"], $fields->cid);
+                                        while ($rec_sflds = db_fetch_object($rs_sub_feilds)) {
+                                            $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i][$rec_sflds->form_key]["#default_value"] = '';
+                                        } 
+                                    }
+                                    
+                                }
+                                else {
+                                   $rs_sub_feilds = db_query("SELECT cid, form_key FROM {webform_component} WHERE nid = %d AND pid = %d ", $_SESSION["edit_subdatagroup_nid"], $fields->cid);
+                                    while ($rec_sflds = db_fetch_object($rs_sub_feilds)) {
+                                        $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i][$rec_sflds->form_key]["#default_value"] = '';
+                                    } 
+                                }
+                                
+                                $form["submitted"][$rec->fieldset_form_key][$fields->form_key . $i]['ssid']["#default_value"] = '';
+                            }
+                        }
+                    }
+                    $form['#validate'] = array('webform_client_form_validate');
+                }
+                else {
+                    webform_addmore_redraw_datagroup_form($form, $rec->fieldset_cid);
+                    $_SESSION["edit_subdatagroup_nid"] = arg(1);
+                    $_SESSION["edit_subdatagroup_sid"] = arg(4);
+                }
+
+                $form["submitted"][$rec->fieldset_form_key]['add_fields'] = array(
+                    '#type' => 'button',
+                    '#value' => t('Add ' . $rec->fieldset_name),
+                    '#ahah' => array(
+                        'event' => 'click',
+                        'path' => ahah_helper_path(array("submitted", $rec->fieldset_form_key)),
+                        'wrapper' => 'additional-fields-' . $rec->fieldset_form_key . '-wrapper',
+                        'method' => 'replace',
+                    ),
+                    '#weight' => 10000
+                );
+            }
+            
+            $form["#submit"][] = "webform_addmore_form_submit";
+            $form["#submit"][] = "webform_addmore_webform_client_form_submit";
+        }
+    } else if ($form_id == "webform_component_edit_form") {
+        if (arg(3) == "components" && arg(4)) {
+            $sql = "SELECT wc1.cid, wc1.type
+              FROM {webform_component} wc1
+              INNER JOIN {webform_component} wc2 ON wc2.cid = wc1.pid
+              WHERE wc2.type = 'fieldset'
+              AND wc1.type = 'fieldset'
+              AND wc1.cid = %d";
+            $component = db_fetch_object(db_query($sql, arg(4)));
+            if ($component->cid) {
+                $form["display"]["addmore"] = array(
+                    "#type" => "checkbox",
+                    "#title" => t("Add More"),
+                    "#default_value" => (db_result(db_query("SELECT 1 FROM {webform_addmore} WHERE sub_fieldset_cid = %d", $component->cid))) ? 1 : 0,
+                    "#description" => t("Make this fieldset and its fields available such that people can add them as many times as they want.")
+                );
+                $form["#submit"][] = "webform_addmore_component_edit_form_submit";
+            }
+        }
+    }
+}
+
+
+function webform_addmore_component_edit_form_submit($form, $form_state) {
+    //print_r($form_state);
+    if ($form_state['values']['display']['addmore']) {
+        $fieldset_info = db_fetch_object(db_query("SELECT form_key, name FROM {webform_component} WHERE cid = %d AND nid = %d", $form_state['values']['pid'], $form_state['values']['nid']));
+        if (!db_result(db_query("SELECT 1 FROM {webform_addmore} WHERE sub_fieldset_cid = %d AND nid = %d", $form_state['values']['cid'], $form_state['values']['nid']))) {
+            db_query("INSERT INTO {webform_addmore} (nid, fieldset_cid, fieldset_form_key, fieldset_name, sub_fieldset_cid, sub_fieldset_form_key)
+                VALUES(%d, %d, '%s', '%s', %d, '%s')", $form_state['values']['nid'], $form_state['values']['pid'], $fieldset_info->form_key, $fieldset_info->name, $form_state['values']['cid'], $form_state['values']['form_key']);
+        }
+    } else {
+        db_query("DELETE FROM {webform_addmore} WHERE sub_fieldset_cid = %d AND nid = %d ", $form_state['values']['cid'], $form_state['values']['nid']);
+    }
+}
+
+function webform_addmore_webform_client_form_submit($form, &$form_state) {
+    global $user;
+    if ($form_state['values']['op'] == 'Submit') {
+        if ($form['#node']->nid == arg(1) && $form['form_id']['#id'] == 'edit-webform-client-form-' . arg(1) && arg(5) == 'edit') {
+            webform_addmore_webform_client_edit_form_submit($form, &$form_state);
+        } else {
+            $node = $form['#node'];
+            // Check if user is submitting as a draft.
+            $is_draft = (int) !empty($form_state['save_draft']);
+            db_query("INSERT INTO {datagroup_submissions} (nid, uid, is_draft, submitted, remote_addr)
+            VALUES (%d, %d, %d, %d, '%s')",
+                    $node->nid, $user->uid, $is_draft, time(), ip_address());
+            $sid = db_last_insert_id('datagroup_submissions', 'sid');
+            $components = array();
+            foreach ($form['#node']->webform['components'] as $key => $values) {
+                $components[$values['form_key']] = array("cid" => $values['cid'], "pid" => $values['pid'], "type" => $values['type'], "title" => $values['name']);
+            }
+            //print_r($form_state); exit;
+            //print_r($form_state['values']['submitted_tree']); exit;
+            //print_r($form_state['clicked_button']['#post']['submitted']); exit;
+            //foreach ($form_state['values']['submitted_tree'] as $key => $value) {
+            if( $form_state['values']['form_id'] == 'webform_client_form_3' ||  $form_state['values']['form_id'] == 'webform_client_form_5' ) {
+                $form_submitted =  $form_state['clicked_button']['#post']['submitted'] ;
+            } else {
+                $form_submitted =  $form_state['values']['submitted_tree'] ;
+            }
+            foreach ($form_submitted as $key => $value) {
+                if ($components[$key]["type"] != "fieldset") {
+                    if (is_array($value)) {
+                        if ($components[$key]["type"] == 'date') {
+                            $value = $value['year'] . '-' . $value['month'] . '-' . $value['day'];
+                        }
+                        
+                    }
+                    db_query("INSERT INTO {datagroup_submitted_data} (nid, sid, cid, data, uid)
+                    VALUES (%d, %d, %d, '%s', %d)",
+                            $node->webform['nid'], $sid, $components[$key]["cid"], $value, $user->uid);
+                } else {
+                    //print_r($value["info" . $i]); echo $value["quantity"]; exit;
+                    for ($i = 0; $i < $value["quantity"]; $i++) {
+                        $i = $i ? (int) $i : NULL;
+                        if (is_array($value["info" . $i])) {
+                            $no_empty = 0;
+                            foreach ($value["info" . $i] as $ke => $vl) {
+                                if ($components[$ke]["type"] == 'date') {
+                                    if (!empty($vl['year']) && !empty($vl['month']) && !empty($vl['day'])) {
+                                        $no_empty++;
+                                    }
+                                } else {
+                                    if (!empty($vl)) {
+                                        $no_empty++;
+                                    }
+                                }
+                            }
+                            if ($no_empty == 0) {
+                                //print_r($value); echo "here"; exit;
+                                continue;
+                            }
+                            db_query("INSERT INTO {sub_datagroup_submissions} (nid, sid, uid, submitted, cid, title)
+                    VALUES (%d, %d, %d, '%s', %d, '%s')",
+                                    $node->webform['nid'], $sid, $user->uid, time(), $components[$key]["cid"], $components[$key]["title"]);
+                            $ssid = db_last_insert_id('sub_datagroup_submissions', 'ssid');
+                            $sub_data_exits = FALSE;
+                            $i = $i ? (int) $i : NULL;
+                            foreach ($value["info" . $i] as $ky => $val) {
+                                if (is_array($val)) {
+                                    if ($components[$key]["type"] == 'date') {
+                                        $val = $val['year'] . '-' . $val['month'] . '-' . $val['day'];
+                                    }
+                                }
+                                //  if (!empty($val)) {
+                                $sub_data_exits = TRUE;
+                                if (is_array($val)) {
+                                    $val = $val['year'] . '-' . $val['month'] . '-' . $val['day'];
+                                }
+                                db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data)
+                        VALUES (%d, %d, '%s')",
+                                        $ssid, $components[$ky]["cid"], $val);
+                                //    }
+                            }
+                            if (!$sub_data_exits) {
+                                db_query("DELETE FROM sub_datagroup_submissions WHERE ssid = %d", $ssid);
+                                db_query("DELETE FROM sub_datagroup_submitted_data WHERE ssid = %d", $ssid);
+                            }
+                        }
+                        //echo "<br/>".$no_empty; exit;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function webform_addmore_webform_client_edit_form_submit($form, &$form_state) {
+    global $user;
+    $nid = arg(1);
+    $sid = arg(4);
+    db_query("UPDATE {datagroup_submissions} SET `submitted` = %d WHERE `nid` = %d AND `sid` = %d ", time(), arg(1), arg(4) );
+    $components = array();
+    foreach ($form['#node']->webform['components'] as $key => $values) {
+        $components[$values['form_key']] = array("cid" => $values['cid'], "pid" => $values['pid'], "type" => $values['type'], "title" => $values['name']);
+    }
+    foreach ($form_state['values']['submitted_tree'] as $key => $value) {
+        $subdatagroup_fieldset = db_fetch_object(db_query("SELECT cid, name FROM {webform_component} WHERE nid = %d AND form_key = '%s'", $nid, $key));
+        if ($components[$key]["type"] != "fieldset") {
+            db_query("Update {datagroup_submitted_data} SET `data` = '%s' WHERE `nid` = %d AND `cid`= %d AND `sid` = %d ", $value, arg(1), $components[$key]['cid'], arg(4));
+        } else {
+            for ($i = 0; $i <= $value["quantity"]; $i++) {
+                $i = $i ? (int) $i : NULL;
+                $ssid = $value["info" . $i]['ssid'];
+                if($ssid) {
+                    db_query("Update {sub_datagroup_submissions} SET `submitted` = %d WHERE `ssid` = %d ", time(),$ssid );
+                }
+                else if(is_array($value["info" . $i])) {
+                    if($nid != 4) {
+                        db_query("INSERT INTO {sub_datagroup_submissions} (nid, sid, uid, submitted, cid, title) VALUES(%d, %d, %d, '%s', %d, '%s') ", $nid, $sid, $user->uid, time(), $subdatagroup_fieldset->cid, $subdatagroup_fieldset->name );
+                    $ssid_new = db_last_insert_id('sub_datagroup_submissions', 'ssid');
+                    }
+                }
+                //print_r($value["info" . $i]); exit;
+                $sub_data_exits = FALSE;
+                if(is_array($value["info" . $i])) {
+                    foreach ($value["info" . $i] as $ky => $val) {
+                    if (!empty($val)) {
+                        $sub_data_exits = TRUE;
+                        //if ( $ky =='date_credit' && is_array($val) ) {
+                        if ( preg_match('/^date/', $ky) && is_array($val) ) {
+                                    $val = $val['year'] . '-' . $val['month'] . '-' . $val['day'];
+                        }
+                        if($ssid) {
+                            db_query("Update {sub_datagroup_submitted_data} SET `data` = '%s' WHERE `ssid` = %d AND `cid`= %d ", $val, $ssid,  $components[$ky]["cid"]);
+                        }
+                        else
+                            if($nid != 4) {
+                            db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data) VALUES(%d, %d, '%s') ", $ssid_new, $components[$ky]["cid"], $val);
+                            }
+                    }
+                }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Implementation of hook_menu
+ */
+function webform_addmore_menu() {
+    $items['webform_addmore/js/remove/subdatagroup'] = array(
+      'page callback' => 'webform_addmore_js_remove_subdatagroup',
+      'access callback'  => TRUE,
+    );
+    return $items;
+  }
+function webform_addmore_js_remove_subdatagroup() {
+    db_query("DELETE FROM {sub_datagroup_submissions} WHERE ssid = %d", arg(4));
+    db_query("DELETE FROM {sub_datagroup_submitted_data} WHERE ssid = %d", arg(4));
+    print("success"); exit;
+}
+
+function webform_addmore_add_letter_of_recommendation_form() {
+    $form = array();
+    $person_default_value = $file_default_value = $date_default_value = $letter_title_default_value = '';
+    $prefix = $suffix = '';
+    if (isset($_REQUEST['ssid']) && !empty($_REQUEST['ssid'])) {
+        $form['ssid_hd'] = array(
+            '#type' => 'hidden',
+            '#value' => $_REQUEST['ssid']
+        );
+        $rs = db_query("SELECT wc.`cid` , wc.`name`, wc.`type`, sub_data.data FROM sub_datagroup_submitted_data sub_data
+                                    INNER JOIN `webform_component` wc ON wc.cid= sub_data.cid
+                                    WHERE ssid = %d  and wc.nid = %d ORDER BY  `wc`.`cid` ASC ", $_REQUEST['ssid'], $_REQUEST['nid']);
+        $row_sub = array();
+        while ($row_data = db_fetch_object($rs)) {
+            if ($row_data->type == 'file') {
+                $file_name = db_result(db_query("SELECT filename from files where fid = %d", $row_data->data));
+                $file_path = db_result(db_query("SELECT filepath from files where fid = %d", $row_data->data));
+                $file_default_value = l($file_name, $base_url . '/' . $file_path);
+                $form['fid_hd'] = array(
+                    '#type' => 'hidden',
+                    '#value' => $row_data->data
+                );
+            } else if (($row_data->type == "date") && !empty($row_data->data) && ($row_data->data != '--')) {
+                $date = explode('-', $row_data->data);
+                $year_default = $date[0];
+                $month_default = $date[1];
+                $day_default = $date[2];
+                $date_default_value = format_date(strtotime($row_data->data), 'small');
+            } else if ($row_data->name == 'Person') {
+                $person_default_value = $row_data->data;
+            } else if ($row_data->name == 'Letter title') {
+                $letter_title_default_value = $row_data->data;
+            }
+        }
+        if(!empty($file_default_value)) {
+            $prefix  = '<div class="prefix"></div>';
+            $suffix = '<div class="letter_recomendation_suffix">';
+            $suffix .= $file_default_value;
+            $suffix .= '</div>';
+
+        }
+    }
+    $days_options = $months_options = $years_options = array();
+    $days_options[''] = 'Day';
+    for($i=1; $i<=31; $i++) {
+        if( $i < 10 && $i > 0) {
+            $days_options['0'.$i] = $i;
+        } else {
+            $days_options[$i] = $i;
+        }
+    }
+    //print_r($days_options);
+    $months_options = array(''=>'Month', '01'=>'Jan', '02'=>'Feb', '03'=>'Mar', '04'=>'Apr', '05'=>'May', '06'=>'Jun', '07'=>'Jul', '08'=>'Aug', '09'=>'Sep', '10'=>'Oct', '11'=>'Nov', '12'=>'Dec');
+    $current_year = date('Y', time());
+    $years_options[''] = 'Year';
+    for($i=$current_year-50; $i<=$current_year; $i++) {
+        $years_options[$i] = $i;
+    }
+    $form['recommendation_letter_title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#default_value' => $letter_title_default_value,
+      '#required' => TRUE,
+    );
+    $form['end_date']['day'] = array(
+        '#type' => 'select',
+        '#title' => t('Day'),
+        '#default_value' => $day_default,
+        '#options' => $days_options
+    );
+    $form['end_date']['month'] = array(
+        '#type' => 'select',
+        '#title' => t('Month'),
+        '#default_value' => $month_default,
+        '#options' => $months_options
+    );
+    $form['end_date']['year'] = array(
+        '#type' => 'select',
+        '#title' => t('Year'),
+        '#default_value' => $year_default,
+        '#options' => $years_options
+    );
+    $form['person'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Person'),
+      '#default_value' => $person_default_value,
+      '#required' => TRUE,
+    );
+    $form['letter_file'] = array(
+      '#type' => 'file',
+      '#title' => t('Letter'),
+      '#suffix' => $suffix,
+      '#size' => 30,
+      '#description' => t('Allowed file formats are: doc, docx, pdf, gif, jpg, png'),
+    );
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Submit')
+    );
+    $form['#attributes'] = array('enctype' => "multipart/form-data");
+    return $form;
+}
+function webform_addmore_colorbox_form_access($form_id) {
+    if($form_id == 'webform_addmore_add_letter_of_recommendation_form' || $form_id == 'custom_buy_individual_plan_form' || $form_id == 'custom_buy_family_plan_form' ) {
+        return TRUE;
+    }
+}
+function webform_addmore_add_letter_of_recommendation_form_submit($form, $form_values) {
+    global $user;
+    if(empty($form_values['values']['year']) && empty ($form_values['values']['month']) && empty($form_values['values']['day']) ) {
+        $date = '';
+    } else if( !empty($form_values['values']['year']) && empty($form_values['values']['month']) && empty($form_values['values']['day']) ) {
+        $date = str_pad($form_values['values']['year'], 2, 0, STR_PAD_LEFT) ;
+    } else if(  empty($form_values['values']['day']) ) {
+        $date = $form_values['values']['year'] . '-' . str_pad($form_values['values']['month'], 2, 0, STR_PAD_LEFT);
+    } else if( empty($form_values['values']['month']) ) {
+        $date = $form_values['values']['year'];
+    } else if( empty($form_values['values']['year']) ) {
+        $date = str_pad($form_values['values']['month'], 2, 0, STR_PAD_LEFT) . '-' . str_pad($form_values['values']['day'], 2, 0, STR_PAD_LEFT);
+    } else { 
+        $date = $form_values['values']['year'] . '-' . str_pad($form_values['values']['month'], 2, 0, STR_PAD_LEFT) . '-' . str_pad($form_values['values']['day'], 2, 0, STR_PAD_LEFT);
+    }
+    //echo $date; exit;
+    //print_r($form_values); exit;
+    $validators = array('file_validate_extensions' => array('docx doc pdf jpg jpeg png gif'));
+    $dest = 'upload_directory';
+    if (!empty($form_values['values']['ssid_hd'])) {
+        //$date = $form_values['values']['year'] . '-' . str_pad($form_values['values']['month'], 2, 0, STR_PAD_LEFT) . '-' . str_pad($form_values['values']['day'], 2, 0, STR_PAD_LEFT);
+        db_query("Update {sub_datagroup_submitted_data} SET `data` = '%s' WHERE `ssid` = %d AND `cid`= %d ", $date, $form_values['values']['ssid_hd'], 8 );
+        db_query("Update {sub_datagroup_submitted_data} SET `data` = '%s' WHERE `ssid` = %d AND `cid`= %d ", $form_values['values']['person'], $form_values['values']['ssid_hd'], 9 );
+        db_query("Update {sub_datagroup_submitted_data} SET `data` = '%s' WHERE `ssid` = %d AND `cid`= %d ", $form_values['values']['recommendation_letter_title'], $form_values['values']['ssid_hd'], 16 );
+        if (!empty($_FILES['files']['name']['letter_file'])) {
+            $file = file_save_upload('letter_file', $validators, file_directory_path().'/webform/recommendation_letter');
+            if ($file != 0) {
+                db_query("Update {sub_datagroup_submitted_data} SET `data` = '%s' WHERE `ssid` = %d AND `cid`= %d ", $file->fid, $form_values['values']['ssid_hd'], 10 );
+            }
+            if(!empty ($form_values['values']['fid_hd']) ) {
+                $file_path = db_result(db_query("SELECT `filepath` FROM {files} WHERE `fid` = %d", $form_values['values']['fid_hd']));
+                unlink($file_path);
+                db_query("DELETE FROM {files} WHERE fid = %d", $form_values['values']['fid_hd']);
+            }
+        }
+        drupal_set_message(t('Letter of Recommendation is updated successfully.'), 'notice');
+    } else {
+        $file = file_save_upload('letter_file', $validators, file_directory_path().'/webform/recommendation_letter');
+        db_query("INSERT INTO {sub_datagroup_submissions} (nid, sid, uid, submitted, cid, title)
+              VALUES(%d, %d, %d, '%s', %d, '%s')", $_GET['nid'], $_GET['sid'], $user->uid, time(), 7, 'Letters of recommendation');
+
+        $ssid = db_last_insert_id('sub_datagroup_submissions', 'ssid');
+        //$date = $form_values['values']['year'] . '-' . str_pad($form_values['values']['month'], 2, 0, STR_PAD_LEFT) . '-' . str_pad($form_values['values']['day'], 2, 0, STR_PAD_LEFT);
+        db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data) VALUES(%d, %d, '%s')", $ssid, 8, $date);
+        db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data) VALUES(%d, %d, '%s')", $ssid, 9, $form_values['values']['person']);
+        db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data) VALUES(%d, %d, '%s')", $ssid, 16, $form_values['values']['recommendation_letter_title']);
+        if ($file != 0) {
+           $fid =  $file->fid;
+        } else {
+            $fid = '';
+        }
+        db_query("INSERT INTO {sub_datagroup_submitted_data} (ssid, cid, data) VALUES(%d, %d, '%s')", $ssid, 10, $fid);
+        drupal_set_message(t('Letter of Recommendation is added successfully.'), 'notice');
+    }
+    $goto_path = 'node/' . $_GET['nid'] . '/data/submission/' . $_GET['sid'] . '/edit/' . $_REQUEST['num'];
+    drupal_goto($goto_path, 'destination=view/data/' . $_GET['nid'] . '/' . $user->uid);
+}

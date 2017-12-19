@@ -1,0 +1,7 @@
+;$Id$
+name = Worldpay
+description = Integrates Worldpay's redirected payment service with MoneyScripts
+version = "6.x-1.49"
+core = 6.x
+package = MoneyScripts - Gateways
+dependencies[] = ms_core

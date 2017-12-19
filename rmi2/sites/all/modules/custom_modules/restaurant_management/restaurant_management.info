@@ -1,0 +1,5 @@
+; $Id: $
+name = Restaurant Management
+description = Custom Module of local restauant management system.
+core = 6.x
+package = Custom
